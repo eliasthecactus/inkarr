@@ -30,6 +30,19 @@
 <h2 id="librivox">LibriVox</h2>
 <p>Free public-domain audiobooks recorded by volunteers. Each release is a zip of MP3 tracks, and the importer extracts it automatically. The LibriVox API only supports “title starts with” searches, so Inkarr sends the book's main title.</p>
 
+<h2 id="internetarchive">Internet Archive</h2>
+<p>Public-domain books scanned by libraries and openly licensed audiobooks from <a href="https://archive.org">archive.org</a>, downloaded directly (DDL). Ebooks come as EPUB and/or PDF; audiobooks come as a zip of MP3 tracks that archive.org builds on the fly and Inkarr extracts on import.</p>
+<p><strong>What it searches:</strong> only curated public-domain collections (American Libraries, Canadian Libraries, California Digital Library, European Libraries, Library of Congress, Biodiversity Heritage Library, the Gutenberg mirror and LibriVox), plus items with an explicit Creative Commons or public-domain license. Borrow-only “lending library” books and user uploads outside these collections are never included. Modern copyrighted books therefore return no results, as intended.</p>
+<table>
+  <tr><th>Field</th><th>Default</th><th>Description</th></tr>
+  <tr><td>Use for</td><td>Ebooks &amp; audiobooks</td><td></td></tr>
+  <tr><td>Ebook formats</td><td>EPUB and PDF</td><td>EPUBs made from page scans are OCR output and are labelled <code>(epub, OCR)</code>. PDFs keep the original page images.</td></tr>
+  <tr><td>Audio quality</td><td>64 kbps MP3</td><td>64 / 128 kbps or VBR MP3.</td></tr>
+  <tr><td>Items per search</td><td>12</td><td>Advanced. Each item needs one extra request to list its files.</td></tr>
+  <tr><td>Extra collections</td><td>(none)</td><td>Advanced. Additional archive.org collection ids, e.g. your own uploads. Only add collections you are allowed to download from.</td></tr>
+</table>
+<div class="tip"><p>Older scans often carry the full historical title (“Frankenstein; or, The Modern Prometheus”). Inkarr only requires the main title, the part before <code>:</code>, <code>;</code> or “, or”, to appear in a release name.</p></div>
+
 <h2 id="more">Adding other sources</h2>
 <p>Any website or API can become an indexer: write a plugin that returns <code>Release</code> objects (see <a href="plugin-development.html#indexer">Plugin development → Indexer</a>). A release only needs a <code>title</code>, a <code>protocol</code> and a <code>downloadUrl</code>. For <code>ddl</code> releases, return the direct file URL, or a hoster URL if you use JDownloader.</p>
 <div class="warn"><p>Only add sources you have the right to download from. Inkarr is a tool for managing <em>your</em> collection, and you are responsible for the content you fetch with it.</p></div>

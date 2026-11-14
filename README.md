@@ -35,6 +35,7 @@ Open http://localhost:8585 and follow the [first-run walkthrough](https://eliast
 | Torznab (Prowlarr / Jackett) | indexer | torrent |
 | Project Gutenberg | indexer | ddl |
 | LibriVox | indexer | ddl |
+| Internet Archive (public domain) | indexer | ddl |
 | Open Library | metadata | — |
 | Google Books | metadata | — |
 | Calibre | connection | — |

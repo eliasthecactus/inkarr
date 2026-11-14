@@ -44,3 +44,9 @@ test('maps remote paths', () => {
   assert.equal(mapRemotePath('/downloads/x/y.epub', '/downloads', '/data/torrents'), '/data/torrents/x/y.epub');
   assert.equal(mapRemotePath('/other/y.epub', '/downloads', '/data/torrents'), '/other/y.epub');
 });
+
+test('subtitles after ";" or ", or" are optional in release names', () => {
+  const b = { title: 'Frankenstein; or, The Modern Prometheus', author: 'Mary Shelley', mediaType: 'audiobook' as const };
+  const r = scoreRelease(b, torrent('Mary W. Shelley - Frankenstein (2005) [eng] (audiobook mp3, 22 tracks)'), defaultSettings);
+  assert.deepEqual(r.rejections, []);
+});

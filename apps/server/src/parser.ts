@@ -42,7 +42,7 @@ export interface ScoredRelease extends Release {
 
 /** Main title without subtitle / series suffix, which release names often drop. */
 function mainTitle(title: string): string {
-  return title.split(/[:(\[]/)[0]!.trim() || title;
+  return title.split(/[:;(\[]|,\s+or,?\s/i)[0]!.trim() || title;
 }
 
 export function titleMatches(book: BookRef, releaseTitle: string): { title: number; author: boolean } {

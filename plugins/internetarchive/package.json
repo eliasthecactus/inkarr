@@ -1,0 +1,9 @@
+{
+  "name": "@inkarr/plugin-internetarchive",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Internet Archive: public-domain and openly licensed books and audiobooks (DDL)",
+  "inkarr": { "id": "internetarchive", "server": "./server/index.ts" },
+  "dependencies": { "@inkarr/sdk": "0.1.0" }
+}
