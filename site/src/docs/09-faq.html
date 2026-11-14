@@ -1,5 +1,13 @@
 <!-- {"title":"FAQ & troubleshooting","group":"Help","description":"Common questions and fixes.","lead":"Answers to the questions that come up most."} -->
 
+<h2 id="wrong-title">A book is missing from search, or its title looks broken</h2>
+<p>Metadata comes from the selected source, and Open Library has gaps for non-English books. Some records have damaged titles (“Die Hu tte” instead of “Die Hütte”), so a title search can't find them. Things to try:</p>
+<ul>
+  <li>Search by <strong>ISBN</strong>. It is printed on the back cover and imprint page, and works with or without dashes.</li>
+  <li>Switch to <strong>Google Books</strong> with the dropdown next to the search field (needs a free API key, see <a href="configuration.html#metadata-sources">Metadata sources</a>).</li>
+  <li>Correct the <strong>title and author in the Add dialog</strong> before adding, or later with <strong>Edit</strong> on the book page. Release matching uses these values.</li>
+</ul>
+
 <h2 id="import-path">“Import failed: download path not found”</h2>
 <p>The download client reported a path Inkarr can't see. Either mount the downloads folder at the same path in both containers, or set <em>Remote path</em> and <em>Local path</em> on the download client (<a href="configuration.html#remote-paths">details</a>). The queue message shows the exact path Inkarr tried.</p>
 

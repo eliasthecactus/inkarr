@@ -10,6 +10,7 @@ import { allTasks, runTask, taskState } from './core-tasks.ts';
 import { setPluginEnabled } from './plugins.ts';
 import { createLogger, recentLogs } from './log.ts';
 import { config } from './config.ts';
+import { cleanBook, listProviders, saveMetadataSettings, searchMetadata } from './metadata.ts';
 import { events } from './events.ts';
 import type { MediaType, MetadataBook, Release } from '@inkarr/sdk';
 
@@ -72,7 +73,7 @@ export function createApi() {
   api.get('/system/logs', (c) => c.json(recentLogs()));
 
   // --- settings -------------------------------------------------------------
-  api.get('/settings', (c) => c.json({ settings: getSettings(), defaults: defaultSettings, metadataProviders: [...registry.metadata.values()].map((m) => ({ id: m.id, name: m.name })) }));
+  api.get('/settings', (c) => c.json({ settings: getSettings(), defaults: defaultSettings, metadataProviders: listProviders() }));
   api.put('/settings', async (c) => c.json(saveSettings(await c.req.json())));
 
   // --- providers (indexers, download clients, connections) ------------------
@@ -108,18 +109,29 @@ export function createApi() {
   });
 
   // --- metadata ---------------------------------------------------------------
+  api.get('/metadata/providers', (c) => c.json(listProviders()));
+  api.put('/metadata/providers/:id', async (c) => {
+    const id = c.req.param('id');
+    if (!registry.metadata.has(id)) throw new HTTPException(404, { message: `unknown metadata provider ${id}` });
+    const { settings } = await c.req.json<{ settings: Record<string, unknown> }>();
+    saveMetadataSettings(id, settings ?? {});
+    return c.json({ ok: true });
+  });
   api.get('/metadata/search', async (c) => {
     const term = c.req.query('term')?.trim();
     if (!term) return c.json([]);
-    const id = c.req.query('provider') || getSettings().metadataProvider;
-    const provider = registry.metadata.get(id) ?? [...registry.metadata.values()][0];
-    if (!provider) throw new HTTPException(400, { message: 'No metadata provider plugin is installed' });
-    const results = await provider.search(term);
+    let found;
+    try {
+      found = await searchMetadata(term, c.req.query('provider'));
+    } catch (err) {
+      throw new HTTPException(502, { message: err instanceof Error ? err.message : String(err) });
+    }
     const existing = db.select({ foreignId: books.foreignId, mediaType: books.mediaType, id: books.id }).from(books).all();
     return c.json(
-      results.map((r) => ({
+      found.results.map((r) => ({
         ...r,
-        source: provider.id,
+        source: found.provider.id,
+        sourceUrl: found.provider.bookUrl?.(r.foreignId) ?? null,
         inLibrary: existing.filter((e) => e.foreignId === r.foreignId).map((e) => ({ id: e.id, mediaType: e.mediaType })),
       })),
     );
@@ -130,10 +142,13 @@ export function createApi() {
   api.get('/books/:id', (c) => {
     const book = getBook(Number(c.req.param('id')));
     if (!book) throw new HTTPException(404, { message: 'book not found' });
-    return c.json(book);
+    const provider = registry.metadata.get(book.metadataSource);
+    return c.json({ ...book, sourceName: provider?.name ?? book.metadataSource, sourceUrl: provider?.bookUrl?.(book.foreignId) ?? null });
   });
   api.post('/books', async (c) => {
-    const body = await c.req.json<{ book: MetadataBook & { source: string }; mediaTypes: MediaType[]; monitored?: boolean; search?: boolean }>();
+    const body = await c.req.json<{ book: MetadataBook & { source: string; sourceUrl?: string | null }; mediaTypes: MediaType[]; monitored?: boolean; search?: boolean }>();
+    body.book = { ...cleanBook(body.book), source: body.book.source };
+    if (!body.book.title?.trim() || !body.book.author?.trim()) throw new HTTPException(400, { message: 'title and author are required' });
     const created = [];
     for (const mediaType of body.mediaTypes?.length ? body.mediaTypes : (['ebook'] as MediaType[])) {
       const row = db
@@ -167,8 +182,18 @@ export function createApi() {
   });
   api.put('/books/:id', async (c) => {
     const id = Number(c.req.param('id'));
-    const body = await c.req.json<{ monitored?: boolean; status?: 'wanted' | 'downloaded' }>();
-    db.update(books).set({ ...(body.monitored != null && { monitored: body.monitored }), ...(body.status && { status: body.status }) }).where(eq(books.id, id)).run();
+    const body = await c.req.json<{ monitored?: boolean; status?: 'wanted' | 'downloaded'; title?: string; author?: string; year?: number | null }>();
+    const clean = (v?: string) => v?.normalize('NFC').replace(/\s+/g, ' ').trim();
+    db.update(books)
+      .set({
+        ...(body.monitored != null && { monitored: body.monitored }),
+        ...(body.status && { status: body.status }),
+        ...(clean(body.title) && { title: clean(body.title) }),
+        ...(clean(body.author) && { author: clean(body.author) }),
+        ...(body.year !== undefined && { year: body.year }),
+      })
+      .where(eq(books.id, id))
+      .run();
     return c.json(getBook(id));
   });
   api.delete('/books/:id', (c) => {

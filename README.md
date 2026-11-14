@@ -36,6 +36,7 @@ Open http://localhost:8585 and follow the [first-run walkthrough](https://eliast
 | Project Gutenberg | indexer | ddl |
 | LibriVox | indexer | ddl |
 | Open Library | metadata | — |
+| Google Books | metadata | — |
 | Calibre | connection | — |
 | Audiobookshelf | connection | — |
 | Webhook | connection | — |

@@ -96,6 +96,49 @@ export function QualityPage() {
   );
 }
 
+interface MetaProvider { id: string; name: string; description?: string; fields: Field[]; settings: Settings }
+
+function MetadataSourceCard({ p }: { p: MetaProvider }) {
+  const [values, setValues] = useState<Settings>(p.settings);
+  const [toast, showToast] = useToast();
+  const save = useApiMutation(() => api.put(`/metadata/providers/${p.id}`, { settings: values }), ['/settings', '/metadata']);
+  return (
+    <div style={{ marginBottom: 18 }}>
+      <h3 style={{ marginBottom: 4 }}>{p.name}</h3>
+      {p.description && <p className="muted" style={{ marginTop: 0 }}>{p.description}</p>}
+      {p.fields.length > 0 && (
+        <>
+          <SettingsForm fields={p.fields} values={values} onChange={setValues} showAdvanced />
+          <div className="form-row">
+            <span />
+            <div>
+              <button className="btn btn-primary" disabled={save.isPending} onClick={() => save.mutate(undefined, { onSuccess: () => showToast(`${p.name} saved`, 'success') })}>
+                Save {p.name}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+      <ErrorBox error={save.error} />
+      {toast}
+    </div>
+  );
+}
+
+function MetadataSources() {
+  const q = useApi<MetaProvider[]>('/metadata/providers');
+  if (!q.data?.length) return null;
+  return (
+    <PageContent>
+      <Section title="Metadata sources">
+        {q.data.map((p) => (
+          <MetadataSourceCard key={p.id} p={p} />
+        ))}
+      </Section>
+    </PageContent>
+  );
+}
+
 export function GeneralSettingsPage() {
   const [key, setKey] = useState(() => {
     try {
@@ -111,13 +154,14 @@ export function GeneralSettingsPage() {
           {
             title: 'Searching',
             fields: (meta: { metadataProviders: { id: string; name: string }[] }) => [
-              { key: 'metadataProvider', label: 'Metadata source', type: 'select', options: meta.metadataProviders.map((m) => ({ value: m.id, label: m.name })) },
+              { key: 'metadataProvider', label: 'Default metadata source', type: 'select', options: meta.metadataProviders.map((m) => ({ value: m.id, label: m.name })), help: 'Preselected on the Add page; you can switch per search.' },
               { key: 'searchOnAdd', label: 'Search when adding', type: 'boolean', help: 'Default for the “Search now” toggle when adding a book.' },
               { key: 'rssIntervalMinutes', label: 'RSS sync interval', type: 'number', help: 'Minutes. Indexers with RSS enabled are checked for wanted books.' },
             ],
           },
         ]}
       />
+      <MetadataSources />
       <PageContent>
         <Section title="This browser">
           <div className="form-row">

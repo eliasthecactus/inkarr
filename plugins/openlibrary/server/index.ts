@@ -36,6 +36,8 @@ export default definePlugin({
     ctx.registerMetadataProvider({
       id: 'openlibrary',
       name: 'Open Library',
+      description: 'Free and open, no key needed. Coverage of non-English editions is patchy.',
+      bookUrl: (foreignId) => `https://openlibrary.org${foreignId}`,
       async search(term) {
         const url = new URL('https://openlibrary.org/search.json');
         const isbn = term.replace(/[-\s]/g, '');

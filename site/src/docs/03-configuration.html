@@ -34,10 +34,19 @@
 <h2 id="general">General</h2>
 <table>
   <tr><th>Setting</th><th>Default</th><th>Description</th></tr>
-  <tr><td>Metadata source</td><td>Open Library</td><td>Any installed metadata plugin.</td></tr>
+  <tr><td>Default metadata source</td><td>Open Library</td><td>Preselected on the Add page. You can switch sources for each search.</td></tr>
   <tr><td>Search when adding</td><td>on</td><td>Default for the “Search now” toggle.</td></tr>
   <tr><td>RSS sync interval</td><td>15 min</td><td>How often RSS-enabled indexers are polled.</td></tr>
 </table>
+
+<h2 id="metadata-sources">Metadata sources</h2>
+<p>Settings → General → <em>Metadata sources</em> lists every installed metadata plugin and its settings.</p>
+<table>
+  <tr><th>Source</th><th>Notes</th></tr>
+  <tr><td>Open Library</td><td>Free, no key. Good for English and classics. Some non-English records have damaged titles (e.g. “Die Hu tte”) or are missing; search by ISBN, or fix the title in the Add dialog.</td></tr>
+  <tr><td>Google Books</td><td>Better coverage of German and other non-English editions. Needs a free API key: Google Cloud console → APIs &amp; Services → enable “Books API” → Credentials → Create API key. <em>Prefer language</em> (e.g. <code>de</code>) restricts title searches to that language.</td></tr>
+</table>
+<p>Title, author and year can be corrected when adding a book, or later with <strong>Edit</strong> on the book page. They are used for release matching and file naming.</p>
 
 <h2 id="remote-paths">Remote path mapping</h2>
 <p>When the download client runs in another container or on another machine, it reports paths that Inkarr can't see. Every download client plugin has two advanced fields:</p>

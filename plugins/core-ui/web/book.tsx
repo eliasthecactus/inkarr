@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { AlertTriangle, Bookmark, BookmarkX, Download, ExternalLink, Magnet, RefreshCw, Search, Trash2, UserSearch, Globe } from 'lucide-react';
+import { AlertTriangle, Bookmark, BookmarkX, Download, ExternalLink, Magnet, Pencil, RefreshCw, Search, Trash2, UserSearch, Globe } from 'lucide-react';
 import {
   api,
   Badge,
@@ -137,6 +137,43 @@ function InteractiveSearch({ book, onGrabbed }: { book: Book; onGrabbed: (title:
   );
 }
 
+function EditBookModal({ book, onClose }: { book: Book; onClose: () => void }) {
+  const [title, setTitle] = useState(book.title);
+  const [author, setAuthor] = useState(book.author);
+  const [year, setYear] = useState(book.year ? String(book.year) : '');
+  const save = useApiMutation(() => api.put(`/books/${book.id}`, { title, author, year: year ? Number(year) : null }), ['/books']);
+  return (
+    <Modal
+      title="Edit book"
+      onClose={onClose}
+      footer={
+        <>
+          <div className="spacer" />
+          <Button onClick={onClose}>Cancel</Button>
+          <Button kind="primary" disabled={!title.trim() || !author.trim()} loading={save.isPending} onClick={() => save.mutate(undefined, { onSuccess: onClose })}>
+            Save
+          </Button>
+        </>
+      }
+    >
+      <ErrorBox error={save.error} />
+      <div className="form-row">
+        <label className="form-label">Title</label>
+        <input className="input" value={title} onChange={(e) => setTitle(e.target.value)} />
+      </div>
+      <div className="form-row">
+        <label className="form-label">Author</label>
+        <input className="input" value={author} onChange={(e) => setAuthor(e.target.value)} />
+      </div>
+      <div className="form-row">
+        <label className="form-label">Year</label>
+        <input className="input" type="number" value={year} onChange={(e) => setYear(e.target.value)} />
+      </div>
+      <p className="muted" style={{ fontSize: 12 }}>Used for release matching and for naming future imports. Already imported files are not renamed.</p>
+    </Modal>
+  );
+}
+
 export function BookPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -146,6 +183,7 @@ export function BookPage() {
   const [toast, showToast] = useToast();
   const [interactive, setInteractive] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   const auto = useApiMutation(() => api.post<{ grabbed: string | null }>(`/books/${id}/auto-search`), ['/books', '/queue']);
   const monitor = useApiMutation((monitored: boolean) => api.put(`/books/${id}`, { monitored }), ['/books']);
@@ -158,7 +196,12 @@ export function BookPage() {
   return (
     <>
       <PageToolbar
-        right={<ToolbarButton icon={Trash2} label="Delete" onClick={() => setConfirmDelete(true)} />}
+        right={
+          <>
+            <ToolbarButton icon={Pencil} label="Edit" onClick={() => setEditing(true)} />
+            <ToolbarButton icon={Trash2} label="Delete" onClick={() => setConfirmDelete(true)} />
+          </>
+        }
       >
         <ToolbarButton
           icon={Search}
@@ -190,9 +233,9 @@ export function BookPage() {
               {b.year && <Badge>{b.year}</Badge>}
               {b.language && <Badge>{b.language}</Badge>}
               {b.series && <Badge tone="accent">{b.series}{b.seriesIndex != null ? ` #${b.seriesIndex}` : ''}</Badge>}
-              {b.metadataSource === 'openlibrary' && (
-                <a href={`https://openlibrary.org${b.foreignId}`} target="_blank" rel="noreferrer">
-                  <Badge tone="info">Open Library <ExternalLink size={10} /></Badge>
+              {b.sourceUrl && (
+                <a href={b.sourceUrl} target="_blank" rel="noreferrer">
+                  <Badge tone="info">{b.sourceName} <ExternalLink size={10} /></Badge>
                 </a>
               )}
             </div>
@@ -256,6 +299,7 @@ export function BookPage() {
         </Section>
       </PageContent>
 
+      {editing && <EditBookModal book={b} onClose={() => setEditing(false)} />}
       {confirmDelete && (
         <Modal
           size="sm"

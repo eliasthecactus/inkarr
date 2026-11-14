@@ -203,8 +203,13 @@ export interface MetadataBook {
 export interface MetadataProvider {
   id: string;
   name: string;
-  search(term: string): Promise<MetadataBook[]>;
-  get?(foreignId: string): Promise<MetadataBook | null>;
+  description?: string;
+  /** Optional settings (e.g. an API key), edited under Settings → General. */
+  fields?: Field[];
+  /** Link to the book on the provider's website, shown on the book page. */
+  bookUrl?(foreignId: string): string | null;
+  search(term: string, settings: Settings): Promise<MetadataBook[]>;
+  get?(foreignId: string, settings: Settings): Promise<MetadataBook | null>;
 }
 
 // ---------------------------------------------------------------------------

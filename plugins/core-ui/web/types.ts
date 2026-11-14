@@ -17,6 +17,8 @@ export interface Book {
   path: string | null;
   files: string[] | null;
   addedAt: number;
+  sourceName?: string;
+  sourceUrl?: string | null;
 }
 
 export interface QueueItem {

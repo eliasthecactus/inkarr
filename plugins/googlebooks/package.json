@@ -1,0 +1,9 @@
+{
+  "name": "@inkarr/plugin-googlebooks",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Google Books metadata provider (good coverage of German and other non-English editions)",
+  "inkarr": { "id": "googlebooks", "server": "./server/index.ts" },
+  "dependencies": { "@inkarr/sdk": "0.1.0" }
+}

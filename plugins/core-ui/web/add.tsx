@@ -13,7 +13,14 @@ interface Result {
   language?: string | null;
   pageCount?: number | null;
   source: string;
+  sourceUrl?: string | null;
   inLibrary: { id: number; mediaType: string }[];
+}
+
+interface ProviderInfo {
+  id: string;
+  name: string;
+  description?: string;
 }
 
 function useDebounced<T>(value: T, ms: number): T {
@@ -31,9 +38,11 @@ function AddModal({ result, onClose }: { result: Result; onClose: () => void }) 
   const [types, setTypes] = useState<Set<string>>(new Set(owned.has('ebook') ? [] : ['ebook']));
   const [monitored, setMonitored] = useState(true);
   const [search, setSearch] = useState<boolean | null>(null);
+  const [title, setTitle] = useState(result.title);
+  const [author, setAuthor] = useState(result.author);
   const navigate = useNavigate();
   const add = useApiMutation(
-    () => api.post('/books', { book: result, mediaTypes: [...types], monitored, search: search ?? settings.data?.settings.searchOnAdd ?? true }),
+    () => api.post('/books', { book: { ...result, title, author }, mediaTypes: [...types], monitored, search: search ?? settings.data?.settings.searchOnAdd ?? true }),
     ['/books', '/metadata', '/queue'],
   );
   const toggle = (t: string) => {
@@ -45,12 +54,12 @@ function AddModal({ result, onClose }: { result: Result; onClose: () => void }) 
 
   return (
     <Modal
-      title={`${result.title}`}
+      title={title || result.title}
       onClose={onClose}
       footer={
         <>
           <div className="spacer" />
-          <Button kind="primary" icon={BookPlus} disabled={types.size === 0} loading={add.isPending} onClick={() => add.mutate(undefined, { onSuccess: (rows: any[]) => (rows[0] ? navigate(`/book/${rows[0].id}`) : onClose()) })}>
+          <Button kind="primary" icon={BookPlus} disabled={types.size === 0 || !title.trim() || !author.trim()} loading={add.isPending} onClick={() => add.mutate(undefined, { onSuccess: (rows: any[]) => (rows[0] ? navigate(`/book/${rows[0].id}`) : onClose()) })}>
             Add {types.size > 1 ? 'both' : ''}
           </Button>
         </>
@@ -62,7 +71,17 @@ function AddModal({ result, onClose }: { result: Result; onClose: () => void }) 
           <Cover src={result.coverUrl} title={result.title} author={result.author} />
         </div>
         <div style={{ flex: 1 }}>
-          <div className="muted">{result.author}{result.year ? ` · ${result.year}` : ''}</div>
+          <div className="form-row" style={{ gridTemplateColumns: '140px 1fr' }}>
+            <span className="form-label">Title</span>
+            <input className="input" value={title} onChange={(e) => setTitle(e.target.value)} />
+          </div>
+          <div className="form-row" style={{ gridTemplateColumns: '140px 1fr' }}>
+            <span className="form-label">Author</span>
+            <div>
+              <input className="input" value={author} onChange={(e) => setAuthor(e.target.value)} />
+              <div className="form-help">Fix typos from the metadata source here — Inkarr searches releases and names files with these.</div>
+            </div>
+          </div>
           <div className="form-row" style={{ gridTemplateColumns: '140px 1fr' }}>
             <span className="form-label">Want as</span>
             <div className="checkbox-row">
@@ -97,13 +116,19 @@ function AddModal({ result, onClose }: { result: Result; onClose: () => void }) 
 export function AddBookPage() {
   const [term, setTerm] = useState('');
   const debounced = useDebounced(term.trim(), 450);
-  const results = useApi<Result[]>(debounced.length >= 2 ? `/metadata/search?term=${encodeURIComponent(debounced)}` : null, { staleTime: 60_000 });
+  const meta = useApi<{ settings: { metadataProvider: string }; metadataProviders: ProviderInfo[] }>('/settings');
+  const [provider, setProvider] = useState<string | null>(null);
+  const activeProvider = provider ?? meta.data?.settings.metadataProvider ?? '';
+  const results = useApi<Result[]>(
+    debounced.length >= 2 && meta.data ? `/metadata/search?term=${encodeURIComponent(debounced)}&provider=${encodeURIComponent(activeProvider)}` : null,
+    { staleTime: 60_000, retry: false },
+  );
   const [adding, setAdding] = useState<Result | null>(null);
 
   return (
     <PageContent>
       <div className="section">
-        <div style={{ position: 'relative' }}>
+        <div style={{ position: 'relative', display: 'flex', gap: 10 }}>
           <Search size={20} style={{ position: 'absolute', left: 14, top: 14, color: 'var(--text-muted)' }} />
           <input
             className="input input-lg"
@@ -113,7 +138,21 @@ export function AddBookPage() {
             onChange={(e) => setTerm(e.target.value)}
             placeholder="Search by title, author or ISBN — e.g. “Frankenstein Shelley” or 9780141439471"
           />
+          {(meta.data?.metadataProviders.length ?? 0) > 1 && (
+            <select className="input input-lg" style={{ width: 200, flexShrink: 0 }} value={activeProvider} onChange={(e) => setProvider(e.target.value)} title="Metadata source">
+              {meta.data!.metadataProviders.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
+        {debounced && !results.isFetching && (
+          <p className="muted" style={{ fontSize: 12, margin: '8px 2px 0' }}>
+            Can’t find it or the title looks wrong? Try the ISBN, switch the metadata source, or fix the title when adding.
+          </p>
+        )}
         <ErrorBox error={results.error} />
         {results.isFetching && <Spinner />}
         {!results.isFetching && results.data?.length === 0 && <EmptyState title="No results">Try fewer words or an ISBN.</EmptyState>}
@@ -135,7 +174,13 @@ export function AddBookPage() {
                   {r.language && <Badge>{r.language}</Badge>}
                   {r.pageCount && <Badge>{r.pageCount} pages</Badge>}
                   {r.isbn?.[0] && <Badge>ISBN {r.isbn[0]}</Badge>}
-                  <Badge tone="info">{r.source}</Badge>
+                  {r.sourceUrl ? (
+                    <a href={r.sourceUrl} target="_blank" rel="noreferrer">
+                      <Badge tone="info">{r.source}</Badge>
+                    </a>
+                  ) : (
+                    <Badge tone="info">{r.source}</Badge>
+                  )}
                   {r.inLibrary.map((i) => (
                     <Link key={i.id} to={`/book/${i.id}`}>
                       <Badge tone="success">

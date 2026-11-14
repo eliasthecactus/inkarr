@@ -132,9 +132,13 @@ interface DownloadItem {
 <pre><code>ctx.registerMetadataProvider({
   id: 'hardcover',
   name: 'Hardcover',
-  search: async (term) =&gt; [{ foreignId, title, author, year, coverUrl, isbn, series, seriesIndex }],
-  get: async (foreignId) =&gt; ({ ... }),
+  description: 'Shown under Settings → General → Metadata sources',
+  fields: [{ key: 'apiKey', label: 'API key', type: 'password' }],   // optional settings
+  bookUrl: (foreignId) =&gt; `https://hardcover.app/books/${foreignId}`,  // optional link
+  search: async (term, settings) =&gt; [{ foreignId, title, author, year, coverUrl, isbn, series, seriesIndex }],
+  get: async (foreignId, settings) =&gt; ({ ... }),
 });</code></pre>
+<p>Return results in your source's order. The core normalizes Unicode (decomposed umlauts become composed characters) and re-ranks results by how well they match the query, ignoring accents, punctuation and spaces. A metadata provider has a single settings object, not multiple instances.</p>
 
 <h3 id="helpers">SDK helpers</h3>
 <p><code>@inkarr/sdk</code> also exports <code>mapRemotePath(path, remote, local)</code>, <code>str</code>/<code>num</code>/<code>bool</code> to read settings safely, <code>trimSlash</code>, and the <code>EBOOK_EXTENSIONS</code> / <code>AUDIO_EXTENSIONS</code> lists.</p>
