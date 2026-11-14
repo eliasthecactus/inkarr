@@ -1,0 +1,49 @@
+<!-- {"title":"Concepts","group":"Introduction","description":"How Inkarr models books, releases, protocols and imports.","lead":"The handful of ideas that explain everything Inkarr does."} -->
+
+<h2 id="books">Books and media types</h2>
+<p>A <strong>book</strong> in your library is a work from a metadata source (Open Library by default) wanted in one <strong>media type</strong>: <code>ebook</code> or <code>audiobook</code>. To get both, Inkarr creates two library entries for the same work. Each has its own status, files and history, so an audiobook that's missing never blocks the ebook you already have.</p>
+<table>
+  <tr><th>Status</th><th>Meaning</th><th>Colour</th></tr>
+  <tr><td>Missing</td><td>Monitored, nothing downloaded yet. Searched automatically.</td><td>red</td></tr>
+  <tr><td>Downloading</td><td>A release was grabbed and is in the queue.</td><td>blue</td></tr>
+  <tr><td>Downloaded</td><td>Files were imported into your library.</td><td>green</td></tr>
+  <tr><td>Unmonitored</td><td>Kept in the library, but never searched automatically.</td><td>grey</td></tr>
+</table>
+
+<h2 id="protocols">Protocols</h2>
+<p>Every release has a <strong>protocol</strong>:</p>
+<ul>
+  <li><code>torrent</code>: a magnet link or <code>.torrent</code> URL. Handled by torrent clients such as qBittorrent.</li>
+  <li><code>ddl</code>: a direct download link, or a link to a file hoster. Handled by the built-in <em>Direct Download</em> client or by JDownloader.</li>
+</ul>
+<p>Indexers declare which protocol they return. Download clients declare which protocols they accept. When a release is grabbed, Inkarr picks the enabled client with the best (lowest) priority that accepts its protocol. If none exists, the grab fails with a clear error and automatic search skips that release.</p>
+
+<h2 id="search">Searching and scoring</h2>
+<p>Searches go to every enabled indexer that supports the book's media type, in parallel. Each result is then <strong>scored</strong> and checked against <strong>rejection rules</strong>:</p>
+<table>
+  <tr><th>Check</th><th>Effect</th></tr>
+  <tr><td>Title words found in the release name (subtitle ignored)</td><td>Fewer than 80% → rejected. Adds up to 100 points.</td></tr>
+  <tr><td>Author's last name found</td><td>+50 points. Required when the title is only one or two words.</td></tr>
+  <tr><td>Media type detected (format, “unabridged”, “narrated”…)</td><td>Rejected if it contradicts what you want.</td></tr>
+  <tr><td>Format (epub, m4b…)</td><td>Rejected if not in your allowed list. Earlier formats in the list score higher.</td></tr>
+  <tr><td>Seeders (torrents)</td><td>Fewer than the minimum → rejected. More seeders add up to 60 points.</td></tr>
+  <tr><td>Declared language</td><td>Rejected if it differs from your configured language.</td></tr>
+</table>
+<p>Automatic search grabs the highest-scoring release with no rejections. <strong>Interactive search</strong> on the book page lists every release, including the rejected ones. Hover the warning icon to see why a release was rejected, and grab any of them manually.</p>
+
+<h2 id="rss">RSS sync</h2>
+<p>Every <em>RSS sync interval</em> minutes (15 by default), Inkarr fetches the newest releases from each indexer with <em>Enable RSS</em> turned on. It checks them against all missing, monitored books. This is how you pick up a new release without hammering indexers with searches.</p>
+
+<h2 id="queue">Queue and import</h2>
+<p>Every 15 seconds Inkarr asks each download client about the items it added. Items are tagged <code>inkarr-&lt;id&gt;</code>, so Inkarr never touches your other downloads. When an item completes:</p>
+<ol>
+  <li>The download path is translated with the client's <a href="configuration.html#remote-paths">remote path mapping</a>.</li>
+  <li>Files matching your allowed formats are collected. If there are none but there are <code>.zip</code> archives, they are extracted first.</li>
+  <li><strong>Ebooks:</strong> one file per format, renamed to <code>{Author} - {Title}.{ext}</code>.<br><strong>Audiobooks:</strong> all audio files keep their track structure, plus cover images and <code>.cue</code> files.</li>
+  <li>Files are hardlinked, copied or moved into <code>&lt;root&gt;/{Author}/{Title} ({Year})/</code>. Torrents are never moved, so they keep seeding.</li>
+  <li>The book becomes <em>Downloaded</em> and connections run <code>onImport</code>.</li>
+</ol>
+<p>If an import fails (wrong path, no matching files), the queue item shows a warning with the reason, and the files stay where they are.</p>
+
+<h2 id="plugins">Plugins</h2>
+<p>The core holds the library, the queue, scoring, importing and the scheduler. Everything that talks to the outside world is a plugin, and so is every page of the UI. See <a href="plugin-development.html">Plugin development</a>.</p>

@@ -1,0 +1,32 @@
+{
+  "name": "inkarr",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Modular book & audiobook collection manager in the *arr style",
+  "license": "GPL-3.0-or-later",
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*",
+    "plugins/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @inkarr/server & npm run dev -w @inkarr/web",
+    "dev:server": "npm run dev -w @inkarr/server",
+    "dev:web": "npm run dev -w @inkarr/web",
+    "build": "npm run build -w @inkarr/web",
+    "start": "npm run start -w @inkarr/server",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0"
+  },
+  "allowScripts": {
+    "better-sqlite3@12.11.1": true,
+    "esbuild@0.28.2": true
+  }
+}

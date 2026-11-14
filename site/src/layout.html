@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{title}} · Inkarr docs</title>
+  <meta name="description" content="{{description}}">
+  <link rel="icon" href="../logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body class="docs">
+  <header class="topbar">
+    <a class="brand" href="../index.html"><img src="../logo.svg" alt="" width="28" height="28"> Inkarr</a>
+    <nav class="topnav">
+      <a href="getting-started.html">Docs</a>
+      <a href="plugin-development.html">Plugins</a>
+      <a href="api.html">API</a>
+      <a href="https://github.com/eliasthecactus/inkarr">GitHub</a>
+    </nav>
+    <button class="menu-toggle" aria-label="Toggle navigation" onclick="document.body.classList.toggle('nav-open')">☰</button>
+  </header>
+  <div class="docs-layout">
+    <aside class="docs-nav">{{nav}}</aside>
+    <main class="docs-content">{{content}}</main>
+    <aside class="docs-toc">{{toc}}</aside>
+  </div>
+  <footer class="footer">Inkarr · open source · <a href="https://github.com/eliasthecactus/inkarr">github.com/eliasthecactus/inkarr</a></footer>
+</body>
+</html>

@@ -1,0 +1,23 @@
+{
+  "name": "@inkarr/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --clear-screen=false src/index.ts",
+    "start": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.19.0",
+    "@inkarr/sdk": "0.1.0",
+    "adm-zip": "^0.5.16",
+    "better-sqlite3": "^12.4.0",
+    "drizzle-orm": "^0.44.0",
+    "hono": "^4.10.0",
+    "tsx": "^4.20.0"
+  },
+  "devDependencies": {
+    "@types/adm-zip": "^0.5.7",
+    "@types/better-sqlite3": "^7.6.13"
+  }
+}

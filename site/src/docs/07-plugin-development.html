@@ -1,0 +1,200 @@
+<!-- {"title":"Plugin development","group":"Extending","description":"Write server and UI plugins for Inkarr.","lead":"Everything in Inkarr is a plugin, including the pages of the UI. This guide covers the plugin layout, both SDKs, and every extension point."} -->
+
+<h2 id="anatomy">Anatomy of a plugin</h2>
+<p>A plugin is a folder with a <code>package.json</code> that has an <code>inkarr</code> key:</p>
+<pre><code>plugins/my-plugin/
+├── package.json
+├── server/index.ts     ← optional: indexers, clients, connections, tasks, routes
+└── web/index.tsx       ← optional: pages, nav entries, book panels</code></pre>
+<pre><code>{
+  "name": "@me/inkarr-plugin-my-plugin",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Shown on System → Plugins",
+  "inkarr": {
+    "id": "my-plugin",
+    "server": "./server/index.ts",
+    "web": "./web/index.tsx"
+  },
+  "dependencies": { "@inkarr/sdk": "*" }
+}</code></pre>
+<p>Server entries are TypeScript, loaded at startup by <code>tsx</code>, so there's no build step. Web entries are bundled into the UI at build time.</p>
+
+<h2 id="installing">Installing plugins</h2>
+<ul>
+  <li><strong>Server-only plugins:</strong> drop the folder into any directory listed in <code>INKARR_PLUGIN_DIRS</code> (colon-separated) and restart. In Docker, mount it, e.g. <code>-v ./my-plugins:/plugins -e INKARR_PLUGIN_DIRS=/plugins</code>.</li>
+  <li><strong>Plugins with UI:</strong> place them in <code>plugins/</code> of the repository and rebuild the image (<code>docker build -t my-inkarr .</code>). The UI only bundles what's present at build time.</li>
+  <li>Enable or disable any plugin under <strong>System → Plugins</strong>. The change takes effect after a restart.</li>
+</ul>
+<p>If a plugin has dependencies of its own, run <code>npm install</code> inside its folder, or add it to the workspace.</p>
+
+<h2 id="server">Server plugins</h2>
+<pre><code>import { definePlugin } from '@inkarr/sdk';
+
+export default definePlugin({
+  id: 'my-plugin',
+  name: 'My plugin',
+  version: '1.0.0',
+  description: 'Does a thing',
+  setup(ctx) {
+    ctx.log.info('hello');
+    // ctx.registerIndexer / registerDownloadClient / registerConnection
+    // ctx.registerMetadataProvider / registerTask / registerRoutes
+    // ctx.events.on('book.imported', ...)
+    // ctx.store.get/set — persistent key/value storage for this plugin
+  },
+});</code></pre>
+
+<h3 id="context">PluginContext</h3>
+<table>
+  <tr><th>Member</th><th>Description</th></tr>
+  <tr><td><code>pluginId</code>, <code>log</code>, <code>dataDir</code></td><td>Identity, a logger (shown on System → Logs), and the data directory.</td></tr>
+  <tr><td><code>events</code></td><td><code>on(event, fn)</code> / <code>emit</code>. Events: <code>book.added</code>, <code>book.grabbed</code>, <code>book.imported</code>, <code>download.failed</code>.</td></tr>
+  <tr><td><code>store</code></td><td>Persistent per-plugin key/value storage (JSON values).</td></tr>
+  <tr><td><code>registerIndexer(def)</code></td><td>A <a href="#providers">provider</a> that returns releases.</td></tr>
+  <tr><td><code>registerDownloadClient(def)</code></td><td>A provider that downloads releases.</td></tr>
+  <tr><td><code>registerConnection(def)</code></td><td>A provider notified on grab/import.</td></tr>
+  <tr><td><code>registerMetadataProvider(p)</code></td><td>Search and lookup for books.</td></tr>
+  <tr><td><code>registerTask(t)</code></td><td>A scheduled job: <code>{ id, name, intervalSeconds, run }</code>. <code>0</code> = manual only. Listed on System → Tasks.</td></tr>
+  <tr><td><code>registerRoutes(fn)</code></td><td>Extra HTTP routes mounted at <code>/api/plugins/&lt;id&gt;/…</code> (a Hono app).</td></tr>
+</table>
+
+<h3 id="providers">Providers and settings fields</h3>
+<p>Indexers, download clients and connections are <em>providers</em>. A provider is a <em>type</em> that users can add several instances of, each with its own settings. You describe the settings, and Inkarr renders the form, stores the values, masks passwords and adds a <em>Test</em> button.</p>
+<pre><code>ctx.registerConnection({
+  type: 'kavita',                    // unique id for this provider type
+  name: 'Kavita',
+  description: 'Scan a Kavita library after imports.',
+  docsUrl: 'https://wiki.kavitareader.com',
+  fields: [
+    { key: 'url', label: 'URL', type: 'url', required: true },
+    { key: 'apiKey', label: 'API key', type: 'password', required: true },
+    { key: 'libraryId', label: 'Library ID', type: 'number', advanced: true },
+  ],
+  create: (settings, { log, dataDir }) => new Kavita(settings, log),
+});</code></pre>
+<table>
+  <tr><th>Field type</th><th>Renders as</th></tr>
+  <tr><td><code>text</code>, <code>url</code>, <code>path</code></td><td>Text input</td></tr>
+  <tr><td><code>password</code></td><td>Password input. Stored, but sent to the browser as <code>********</code>.</td></tr>
+  <tr><td><code>number</code></td><td>Number input</td></tr>
+  <tr><td><code>boolean</code></td><td>Switch</td></tr>
+  <tr><td><code>select</code></td><td>Dropdown from <code>options: [{ value, label }]</code></td></tr>
+</table>
+<p>Common field options: <code>required</code>, <code>default</code>, <code>help</code>, <code>placeholder</code>, and <code>advanced</code> (hidden behind “Show advanced”). <code>create()</code> runs again whenever the settings change. Instances are cached, so keeping sessions or cookies on the instance is fine.</p>
+
+<h3 id="indexer">Indexer</h3>
+<pre><code>interface Indexer {
+  protocol: 'torrent' | 'ddl';
+  mediaTypes: ('ebook' | 'audiobook')[];
+  test(): Promise&lt;{ ok: boolean; message?: string }&gt;;
+  search(q: { term: string; mediaType; book?: BookRef }): Promise&lt;Release[]&gt;;
+  recent?(): Promise&lt;Release[]&gt;;       // enables RSS sync
+}
+
+interface Release {
+  guid: string;          // stable per indexer
+  title: string;         // used for matching: include author + title + format if you can
+  protocol: 'torrent' | 'ddl';
+  downloadUrl: string;   // magnet / .torrent URL / direct or hoster URL
+  infoUrl?: string; size?: number; seeders?: number; leechers?: number;
+  publishDate?: string; format?: string; language?: string;
+  mediaType?: 'ebook' | 'audiobook';
+}</code></pre>
+<p>Return everything you find. Inkarr scores, filters and de-duplicates the results. Setting <code>format</code> and <code>mediaType</code> when you know them improves matching a lot.</p>
+
+<h3 id="download-client">Download client</h3>
+<pre><code>interface DownloadClient {
+  protocols: ('torrent' | 'ddl')[];
+  test(): Promise&lt;TestResult&gt;;
+  add(release: Release, opts: { tag: string; mediaType }): Promise&lt;string&gt;;   // returns an id
+  getItems(ids: string[]): Promise&lt;DownloadItem[]&gt;;
+  remove?(id: string, deleteData: boolean): Promise&lt;void&gt;;
+}
+
+interface DownloadItem {
+  id: string; name: string;
+  status: 'queued' | 'downloading' | 'paused' | 'completed' | 'failed' | 'warning';
+  progress: number;      // 0..1
+  size?: number; eta?: number; message?: string;
+  outputPath?: string;   // LOCAL path of the finished file/folder (apply mapRemotePath)
+}</code></pre>
+<p>The <code>tag</code> (e.g. <code>inkarr-42</code>) is unique per grab. The simplest pattern is to label the download with it and return the tag as the id. Report <code>completed</code> only when the files are final; Inkarr imports right away.</p>
+
+<h3 id="connection">Connection</h3>
+<pre><code>interface Connection {
+  test(): Promise&lt;TestResult&gt;;
+  onGrab?(e: { book: BookRef; release: Release }): Promise&lt;void&gt;;
+  onImport?(e: { book: BookRef; folder: string; files: string[] }): Promise&lt;void&gt;;
+}</code></pre>
+
+<h3 id="metadata">Metadata provider</h3>
+<pre><code>ctx.registerMetadataProvider({
+  id: 'hardcover',
+  name: 'Hardcover',
+  search: async (term) =&gt; [{ foreignId, title, author, year, coverUrl, isbn, series, seriesIndex }],
+  get: async (foreignId) =&gt; ({ ... }),
+});</code></pre>
+
+<h3 id="helpers">SDK helpers</h3>
+<p><code>@inkarr/sdk</code> also exports <code>mapRemotePath(path, remote, local)</code>, <code>str</code>/<code>num</code>/<code>bool</code> to read settings safely, <code>trimSlash</code>, and the <code>EBOOK_EXTENSIONS</code> / <code>AUDIO_EXTENSIONS</code> lists.</p>
+
+<h2 id="web">UI plugins</h2>
+<p>A web plugin default-exports <code>defineWebPlugin()</code> from <code>web/index.tsx</code>. It can add <strong>routes</strong>, <strong>sidebar entries</strong> (top-level, or under an existing section such as <code>settings</code>, <code>system</code> or <code>activity</code>), and <strong>panels on the book page</strong>.</p>
+<pre><code>import { Sparkles } from 'lucide-react';
+import { defineWebPlugin, PageContent, PageToolbar, ToolbarButton, useApi } from '@inkarr/web-sdk';
+
+function StatsPage() {
+  const books = useApi&lt;any[]&gt;('/books');
+  return (
+    &lt;&gt;
+      &lt;PageToolbar&gt;&lt;ToolbarButton icon={Sparkles} label="Refresh" onClick={() =&gt; books.refetch()} /&gt;&lt;/PageToolbar&gt;
+      &lt;PageContent&gt;You own {books.data?.length ?? '…'} books.&lt;/PageContent&gt;
+    &lt;/&gt;
+  );
+}
+
+export default defineWebPlugin({
+  id: 'stats',
+  routes: [{ path: '/stats', element: &lt;StatsPage /&gt; }],
+  nav: [
+    { id: 'stats', label: 'Stats', path: '/stats', icon: Sparkles, order: 50 },
+    // or as a sub-entry: { id: 'stats', parent: 'system', label: 'Stats', path: '/stats' }
+  ],
+  bookPanels: [
+    { id: 'notes', title: 'My notes', component: ({ book }) =&gt; &lt;p&gt;Notes for {book.title}&lt;/p&gt; },
+  ],
+});</code></pre>
+<p>The core pages (Library, Activity, Settings, …) are themselves the <code>core-ui</code> plugin. Read <code>plugins/core-ui/web/</code> for complete examples.</p>
+
+<h3 id="web-sdk">@inkarr/web-sdk</h3>
+<table>
+  <tr><th>Export</th><th>Use</th></tr>
+  <tr><td><code>api</code>, <code>api.get/post/put/del</code></td><td>Fetch wrapper for <code>/api</code>. Sends the API key and throws <code>ApiError</code>.</td></tr>
+  <tr><td><code>useApi(path, opts)</code></td><td>Cached GET (TanStack Query). The path doubles as the query key.</td></tr>
+  <tr><td><code>useApiMutation(fn, invalidatePrefixes)</code></td><td>Mutation that refreshes matching queries on success.</td></tr>
+  <tr><td><code>PageToolbar</code>, <code>ToolbarButton</code>, <code>ToolbarSeparator</code></td><td>The icon toolbar under the header.</td></tr>
+  <tr><td><code>PageContent</code>, <code>Section</code>, <code>Modal</code>, <code>Tabs</code>, <code>Button</code>, <code>Badge</code>, <code>ProgressBar</code>, <code>Cover</code>, <code>Spinner</code>, <code>EmptyState</code>, <code>ErrorBox</code>, <code>useToast</code></td><td>UI building blocks matching the app's style.</td></tr>
+  <tr><td><code>SettingsForm</code>, <code>FieldInput</code></td><td>Render <code>Field[]</code> schemas, the same as provider settings.</td></tr>
+  <tr><td><code>ProviderSettingsPage</code></td><td>The full card grid + modal used for indexers, clients and connections.</td></tr>
+  <tr><td><code>formatBytes</code>, <code>relativeTime</code>, <code>formatEta</code></td><td>Formatting helpers.</td></tr>
+</table>
+<p>Plugins can use <code>react</code>, <code>react-router-dom</code>, <code>@tanstack/react-query</code> and <code>lucide-react</code>. These are deduplicated with the app.</p>
+
+<h2 id="full-stack">Full-stack example</h2>
+<p>Server and UI parts of one plugin communicate through plugin routes:</p>
+<pre><code>// server/index.ts
+ctx.registerRoutes((app) =&gt; {
+  app.get('/hello', (c) =&gt; c.json({ message: 'hi' }));   // GET /api/plugins/my-plugin/hello
+});
+
+// web/index.tsx
+const hello = useApi&lt;{ message: string }&gt;('/plugins/my-plugin/hello');</code></pre>
+
+<h2 id="guidelines">Guidelines</h2>
+<ul>
+  <li>Use timeouts on every network call (<code>AbortSignal.timeout(…)</code>). A hanging plugin delays searches.</li>
+  <li>Throw an <code>Error</code> with a helpful message. It's shown to the user next to the indexer or download.</li>
+  <li>Don't keep secrets anywhere other than password fields or <code>ctx.store</code>.</li>
+  <li>Respect site terms and rate limits, and only integrate sources users have the right to access.</li>
+</ul>

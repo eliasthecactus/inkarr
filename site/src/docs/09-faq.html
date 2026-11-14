@@ -1,0 +1,32 @@
+<!-- {"title":"FAQ & troubleshooting","group":"Help","description":"Common questions and fixes.","lead":"Answers to the questions that come up most."} -->
+
+<h2 id="import-path">“Import failed: download path not found”</h2>
+<p>The download client reported a path Inkarr can't see. Either mount the downloads folder at the same path in both containers, or set <em>Remote path</em> and <em>Local path</em> on the download client (<a href="configuration.html#remote-paths">details</a>). The queue message shows the exact path Inkarr tried.</p>
+
+<h2 id="no-files">“No ebook files found in download”</h2>
+<p>The download finished but contains none of your allowed formats. Maybe it only has a <code>.rar</code>, or a format you excluded. Check <strong>Settings → Formats &amp; Rules</strong>. Zip archives are extracted automatically; RAR is not supported yet.</p>
+
+<h2 id="no-results">Search finds nothing</h2>
+<ul>
+  <li>Check that at least one indexer supports the book's media type (<em>Use for</em> on Torznab).</li>
+  <li>Open the book and use <strong>Interactive</strong> search. Indexer errors are listed above the results.</li>
+  <li>Very long titles: Inkarr searches <code>author + main title</code> without the subtitle, but some indexers need fewer words.</li>
+</ul>
+
+<h2 id="rejected">Everything is rejected</h2>
+<p>Hover the ⚠ icon in interactive search to see the reasons. The usual causes are a title mismatch (a translated title, or the release uses a series name) or a format that isn't in your list. You can always grab a rejected release manually.</p>
+
+<h2 id="hardlinks">Files are copied instead of hardlinked</h2>
+<p>Hardlinks only work within one filesystem <em>and</em> one Docker mount. Mount a common parent (e.g. <code>/data</code>) instead of separate <code>/downloads</code> and <code>/books</code> volumes.</p>
+
+<h2 id="anna">Will you add site X?</h2>
+<p>Inkarr doesn't include scrapers for sites whose main purpose is distributing copyrighted books without permission. For torrent trackers, use Torznab through Prowlarr or Jackett, which manage indexer definitions. Anything else can be a plugin. See <a href="plugin-development.html">Plugin development</a>.</p>
+
+<h2 id="readarr">How is this different from Readarr?</h2>
+<p>Readarr was retired in 2025. Inkarr is a fresh codebase with no shared code. It's written in TypeScript and built around a plugin system, so every integration can be replaced. It also treats ebook and audiobook as two wants of the same work, and supports direct downloads as well as torrents.</p>
+
+<h2 id="logs">Where are the logs?</h2>
+<p><strong>System → Logs</strong> shows the last 1000 entries, and the container's stdout has everything (<code>docker logs inkarr</code>). Set <code>INKARR_DEBUG=1</code> for more detail.</p>
+
+<h2 id="reset">How do I start over?</h2>
+<p>Stop Inkarr and delete <code>/config/inkarr.db*</code>. Your media files are never deleted by Inkarr.</p>

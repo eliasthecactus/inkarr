@@ -1,0 +1,9 @@
+{
+  "name": "@inkarr/plugin-jdownloader",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "JDownloader 2 download client for DDL / file hosters",
+  "inkarr": { "id": "jdownloader", "server": "./server/index.ts" },
+  "dependencies": { "@inkarr/sdk": "0.1.0" }
+}

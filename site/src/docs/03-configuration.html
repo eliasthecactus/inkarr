@@ -1,0 +1,58 @@
+<!-- {"title":"Configuration","group":"Guides","description":"Every setting in Inkarr explained.","lead":"Every setting, what it does and the defaults."} -->
+
+<h2 id="media-management">Media management</h2>
+<table>
+  <tr><th>Setting</th><th>Default</th><th>Description</th></tr>
+  <tr><td>Ebook library</td><td><code>/books</code></td><td>Root folder for imported ebooks.</td></tr>
+  <tr><td>Audiobook library</td><td><code>/audiobooks</code></td><td>Root folder for imported audiobooks.</td></tr>
+  <tr><td>Import mode</td><td>Hardlink</td><td><em>Hardlink</em> falls back to copy across filesystems. <em>Move</em> applies only to DDL; torrents are hardlinked instead.</td></tr>
+  <tr><td>Folder format</td><td><code>{Author}/{Title} ({Year})</code></td><td>Relative to the root. <code>/</code> creates sub-folders.</td></tr>
+  <tr><td>File name format</td><td><code>{Author} - {Title}</code></td><td>Extension is appended. Used for ebooks and single-file audiobooks.</td></tr>
+</table>
+<h3 id="tokens">Naming tokens</h3>
+<table>
+  <tr><th>Token</th><th>Example</th></tr>
+  <tr><td><code>{Author}</code></td><td>Mary Shelley</td></tr>
+  <tr><td><code>{Title}</code></td><td>Frankenstein (subtitle removed)</td></tr>
+  <tr><td><code>{FullTitle}</code></td><td>Frankenstein: Or, The Modern Prometheus</td></tr>
+  <tr><td><code>{Year}</code></td><td>1818</td></tr>
+  <tr><td><code>{Series}</code> / <code>{SeriesIndex}</code></td><td>Discworld / 01</td></tr>
+  <tr><td><code>{Format}</code></td><td>epub (file names only)</td></tr>
+</table>
+<p>Empty tokens are removed together with empty brackets, so <code>{Title} ({Year})</code> becomes <code>Title</code> when there is no year. Characters that are invalid in file names are stripped.</p>
+<div class="note"><p><strong>Audiobookshelf tip:</strong> ABS expects <code>Author/Title/</code> or <code>Author/Series/01 - Title/</code>. The default folder format works out of the box. For series, use <code>{Author}/{Series}/{SeriesIndex} - {Title}</code>.</p></div>
+
+<h2 id="formats">Formats and rules</h2>
+<table>
+  <tr><th>Setting</th><th>Default</th><th>Description</th></tr>
+  <tr><td>Ebook formats</td><td><code>epub,azw3,mobi,pdf</code></td><td>Allowed formats, most preferred first. Releases in other detected formats are rejected.</td></tr>
+  <tr><td>Audiobook formats</td><td><code>m4b,mp3,m4a,flac,ogg,opus</code></td><td>Preferred order. Decides which files count as audio during import.</td></tr>
+  <tr><td>Minimum seeders</td><td><code>1</code></td><td>Torrents below this are rejected.</td></tr>
+  <tr><td>Language</td><td>(any)</td><td>Releases that <em>declare</em> another language are rejected. Many indexers don't declare a language at all.</td></tr>
+</table>
+
+<h2 id="general">General</h2>
+<table>
+  <tr><th>Setting</th><th>Default</th><th>Description</th></tr>
+  <tr><td>Metadata source</td><td>Open Library</td><td>Any installed metadata plugin.</td></tr>
+  <tr><td>Search when adding</td><td>on</td><td>Default for the “Search now” toggle.</td></tr>
+  <tr><td>RSS sync interval</td><td>15 min</td><td>How often RSS-enabled indexers are polled.</td></tr>
+</table>
+
+<h2 id="remote-paths">Remote path mapping</h2>
+<p>When the download client runs in another container or on another machine, it reports paths that Inkarr can't see. Every download client plugin has two advanced fields:</p>
+<ul>
+  <li><strong>Remote path</strong>: the path as the client reports it, e.g. <code>/downloads</code>.</li>
+  <li><strong>Local path</strong>: the same folder as Inkarr sees it, e.g. <code>/data/torrents</code>.</li>
+</ul>
+<p>The simplest fix is to mount the same host folder at the same path in every container. Then no mapping is needed.</p>
+
+<h2 id="priorities">Provider priority</h2>
+<p>Indexers, download clients and connections have a <em>Priority</em> (advanced, 1–50, default 25). Lower numbers win. With two torrent clients, releases go to the one with the lower number.</p>
+
+<h2 id="security">Security</h2>
+<p>Inkarr has no login screen yet. Run it on a trusted network or behind a reverse proxy with authentication (Authelia, Authentik, basic auth…). Setting <code>INKARR_API_KEY</code> requires an <code>X-Api-Key</code> header on every API request. In the UI, enter the key under <strong>Settings → General → This browser</strong>.</p>
+<p>Passwords and API keys in provider settings are stored in the SQLite database and are never sent back to the browser in full; they appear as <code>********</code>.</p>
+
+<h2 id="backup">Backup</h2>
+<p>Everything lives in <code>/config/inkarr.db</code>, an SQLite database in WAL mode. Stop the container, or use <code>sqlite3 inkarr.db ".backup backup.db"</code>, and copy the file.</p>

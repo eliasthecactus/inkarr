@@ -1,0 +1,61 @@
+<!-- {"title":"REST API","group":"Extending","description":"Inkarr's HTTP API reference.","lead":"The UI uses the same JSON API you can script against. All paths are relative to /api."} -->
+
+<h2 id="auth">Authentication</h2>
+<p>When <code>INKARR_API_KEY</code> is set, send it as an <code>X-Api-Key</code> header (or <code>?apikey=</code>). Without it, the API is open. Errors come back as <code>{ "error": "message" }</code> with a 4xx/5xx status.</p>
+<pre><code>curl -H "X-Api-Key: $KEY" http://localhost:8585/api/books</code></pre>
+
+<h2 id="books">Books</h2>
+<table>
+  <tr><th>Endpoint</th><th>Description</th></tr>
+  <tr><td class="endpoint"><span class="method m-get">GET</span> /books</td><td>All books in the library.</td></tr>
+  <tr><td class="endpoint"><span class="method m-get">GET</span> /books/:id</td><td>One book.</td></tr>
+  <tr><td class="endpoint"><span class="method m-post">POST</span> /books</td><td>Add. Body: <code>{ book: MetadataBook &amp; { source }, mediaTypes: ["ebook","audiobook"], monitored?, search? }</code>. Returns the created rows (one per media type).</td></tr>
+  <tr><td class="endpoint"><span class="method m-put">PUT</span> /books/:id</td><td>Update <code>{ monitored?, status? }</code>.</td></tr>
+  <tr><td class="endpoint"><span class="method m-delete">DELETE</span> /books/:id</td><td>Remove from library. Files stay on disk.</td></tr>
+  <tr><td class="endpoint"><span class="method m-post">POST</span> /books/:id/search</td><td>Interactive search. Returns <code>{ releases: ScoredRelease[], errors: string[] }</code>.</td></tr>
+  <tr><td class="endpoint"><span class="method m-post">POST</span> /books/:id/auto-search</td><td>Search and grab the best release. Returns <code>{ grabbed: title | null }</code>.</td></tr>
+  <tr><td class="endpoint"><span class="method m-get">GET</span> /books/:id/history</td><td>History for one book.</td></tr>
+  <tr><td class="endpoint"><span class="method m-post">POST</span> /grab</td><td>Grab a specific release: <code>{ bookId, release }</code>.</td></tr>
+</table>
+
+<h2 id="metadata">Metadata</h2>
+<table>
+  <tr><td class="endpoint"><span class="method m-get">GET</span> /metadata/search?term=…&amp;provider=…</td><td>Search the metadata provider. Each result includes <code>inLibrary</code> entries.</td></tr>
+</table>
+
+<h2 id="activity">Activity</h2>
+<table>
+  <tr><td class="endpoint"><span class="method m-get">GET</span> /queue</td><td>Active, warning and failed downloads with their book.</td></tr>
+  <tr><td class="endpoint"><span class="method m-delete">DELETE</span> /queue/:id?deleteData=true</td><td>Remove. Optionally removes the item and its data in the client too.</td></tr>
+  <tr><td class="endpoint"><span class="method m-get">GET</span> /history?limit=200</td><td>Global history.</td></tr>
+</table>
+
+<h2 id="providers">Providers</h2>
+<p><code>:kind</code> is <code>indexer</code>, <code>downloadClient</code> or <code>connection</code>.</p>
+<table>
+  <tr><td class="endpoint"><span class="method m-get">GET</span> /schema/:kind</td><td>Installed provider types with their settings fields.</td></tr>
+  <tr><td class="endpoint"><span class="method m-get">GET</span> /providers/:kind</td><td>Configured instances (secrets masked).</td></tr>
+  <tr><td class="endpoint"><span class="method m-post">POST</span> /providers/:kind</td><td>Create: <code>{ type, name, enabled, priority, settings }</code>.</td></tr>
+  <tr><td class="endpoint"><span class="method m-put">PUT</span> /providers/:kind/:id</td><td>Update. Sending <code>********</code> for a secret keeps the stored value.</td></tr>
+  <tr><td class="endpoint"><span class="method m-delete">DELETE</span> /providers/:kind/:id</td><td>Delete.</td></tr>
+  <tr><td class="endpoint"><span class="method m-post">POST</span> /providers/:kind/test</td><td>Test unsaved settings. Returns <code>{ ok, message }</code>.</td></tr>
+</table>
+
+<h2 id="settings">Settings</h2>
+<table>
+  <tr><td class="endpoint"><span class="method m-get">GET</span> /settings</td><td><code>{ settings, defaults, metadataProviders }</code></td></tr>
+  <tr><td class="endpoint"><span class="method m-put">PUT</span> /settings</td><td>Partial update of core settings.</td></tr>
+</table>
+
+<h2 id="system">System</h2>
+<table>
+  <tr><td class="endpoint"><span class="method m-get">GET</span> /system/status</td><td>Version, uptime, data directory.</td></tr>
+  <tr><td class="endpoint"><span class="method m-get">GET</span> /system/plugins</td><td>Discovered plugins, what they contribute, and load errors.</td></tr>
+  <tr><td class="endpoint"><span class="method m-put">PUT</span> /system/plugins/:id</td><td><code>{ enabled }</code>. Takes effect after a restart.</td></tr>
+  <tr><td class="endpoint"><span class="method m-get">GET</span> /system/tasks</td><td>Tasks with last/next run.</td></tr>
+  <tr><td class="endpoint"><span class="method m-post">POST</span> /system/tasks/:id/run</td><td>Run now. Core ids: <code>refresh-downloads</code>, <code>rss-sync</code>, <code>search-wanted</code>.</td></tr>
+  <tr><td class="endpoint"><span class="method m-get">GET</span> /system/logs</td><td>Last 1000 log entries, newest first.</td></tr>
+</table>
+
+<h2 id="plugins">Plugin routes</h2>
+<p>Plugins may add routes under <code>/api/plugins/&lt;plugin-id&gt;/…</code>. See the plugin's own docs.</p>

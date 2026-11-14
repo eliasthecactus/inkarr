@@ -1,0 +1,35 @@
+<!-- {"title":"Indexers","group":"Guides","description":"Torznab, Project Gutenberg and LibriVox indexers.","lead":"Indexers are where Inkarr looks for releases. Each one is a plugin, and you can add as many instances as you like."} -->
+
+<h2 id="torznab">Torznab (Prowlarr, Jackett)</h2>
+<p>Torznab is the standard search API for torrent indexers. Inkarr doesn't include site-specific scrapers. Instead it talks Torznab to an indexer manager, which handles logins, Cloudflare and site quirks.</p>
+<h3>With Prowlarr</h3>
+<ol>
+  <li>In Prowlarr, add your indexers as usual.</li>
+  <li>Open an indexer and copy its <strong>Torznab feed URL</strong>, e.g. <code>http://prowlarr:9696/3/</code>. Copy your API key from <em>Settings → General</em>.</li>
+  <li>In Inkarr, go to <strong>Settings → Indexers → + → Torznab</strong>, paste the URL and API key, choose what it is used for, and click <em>Test</em>.</li>
+</ol>
+<p>Repeat for each indexer. Use <em>Use for</em> to send ebook searches only to book trackers and audiobook searches only to audiobook trackers.</p>
+<h3>Categories</h3>
+<table>
+  <tr><th>Field</th><th>Default</th><th>Newznab meaning</th></tr>
+  <tr><td>Ebook categories</td><td><code>7000,7020,8010</code></td><td>Books, Books/EBook, Other/Misc</td></tr>
+  <tr><td>Audiobook categories</td><td><code>3030</code></td><td>Audio/Audiobook</td></tr>
+</table>
+<p>Results in <code>3xxx</code> categories are treated as audiobooks, and results in <code>7xxx</code>/<code>8xxx</code> as ebooks, unless the release name says otherwise.</p>
+<h3>Search and RSS</h3>
+<p>Torznab supports both: interactive and automatic search use <code>t=search&amp;q=…</code>, and RSS sync fetches the newest items per category. Turn either off per indexer with <em>Enable RSS</em> and <em>Enable search</em>.</p>
+
+<h2 id="gutenberg">Project Gutenberg</h2>
+<p>More than 70,000 public-domain ebooks from gutenberg.org’s official OPDS catalog. Releases are <code>ddl</code> links to the EPUB and/or Kindle (AZW3) file. You need a DDL download client, such as the built-in <em>Direct Download</em>.</p>
+<table>
+  <tr><th>Field</th><th>Description</th></tr>
+  <tr><td>Formats</td><td>EPUB, Kindle (AZW3) or both.</td></tr>
+  <tr><td>Mirror URL</td><td>Advanced. Use a Gutenberg mirror instead of gutenberg.org.</td></tr>
+</table>
+
+<h2 id="librivox">LibriVox</h2>
+<p>Free public-domain audiobooks recorded by volunteers. Each release is a zip of MP3 tracks, and the importer extracts it automatically. The LibriVox API only supports “title starts with” searches, so Inkarr sends the book's main title.</p>
+
+<h2 id="more">Adding other sources</h2>
+<p>Any website or API can become an indexer: write a plugin that returns <code>Release</code> objects (see <a href="plugin-development.html#indexer">Plugin development → Indexer</a>). A release only needs a <code>title</code>, a <code>protocol</code> and a <code>downloadUrl</code>. For <code>ddl</code> releases, return the direct file URL, or a hoster URL if you use JDownloader.</p>
+<div class="warn"><p>Only add sources you have the right to download from. Inkarr is a tool for managing <em>your</em> collection, and you are responsible for the content you fetch with it.</p></div>

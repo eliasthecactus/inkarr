@@ -1,0 +1,51 @@
+<!-- {"title":"Download clients","group":"Guides","description":"qBittorrent, the built-in direct downloader and JDownloader.","lead":"Download clients fetch what indexers find. Torrents and direct downloads use different clients, and you can run both side by side."} -->
+
+<h2 id="qbittorrent">qBittorrent</h2>
+<p>Requires qBittorrent 4.1+ with <em>Tools → Options → Web UI</em> enabled.</p>
+<table>
+  <tr><th>Field</th><th>Default</th><th>Description</th></tr>
+  <tr><td>URL</td><td><code>http://localhost:8080</code></td><td>Web UI address as seen from Inkarr.</td></tr>
+  <tr><td>Username / Password</td><td><code>admin</code></td><td>Leave empty if you whitelisted Inkarr's subnet under <em>Bypass authentication</em>.</td></tr>
+  <tr><td>Category (ebooks)</td><td><code>inkarr-books</code></td><td>Created automatically. Set a save path for the category in qBittorrent if you want per-category folders.</td></tr>
+  <tr><td>Category (audiobooks)</td><td><code>inkarr-audiobooks</code></td><td></td></tr>
+  <tr><td>Save path</td><td>(empty)</td><td>Advanced. Overrides the category / default path.</td></tr>
+  <tr><td>Add paused</td><td>off</td><td>Advanced.</td></tr>
+  <tr><td>Remote / Local path</td><td></td><td>See <a href="configuration.html#remote-paths">remote path mapping</a>.</td></tr>
+</table>
+<h3 id="qbit-how">How it works</h3>
+<ul>
+  <li>Magnet links go straight to qBittorrent. For <code>.torrent</code> URLs, Inkarr downloads the file itself and uploads it. Indexer links often only work from Inkarr's network, and some redirect to a magnet link; both cases are handled.</li>
+  <li>Every torrent gets the tags <code>inkarr</code> and <code>inkarr-&lt;id&gt;</code>. Inkarr only looks at torrents with its own tags.</li>
+  <li>A torrent counts as complete as soon as it reaches 100% (seeding states). Imports use hardlinks, so seeding continues.</li>
+  <li>Removing an item from the queue can also remove it from qBittorrent, with or without its data.</li>
+</ul>
+
+<h2 id="direct">Direct Download (built-in)</h2>
+<p>A small HTTP downloader inside Inkarr for releases with protocol <code>ddl</code> that point at a file, such as Gutenberg, LibriVox or your own server.</p>
+<table>
+  <tr><th>Field</th><th>Default</th><th>Description</th></tr>
+  <tr><td>Download folder</td><td><code>/config/downloads</code></td><td>Temporary folder. Each grab gets a sub-folder <code>inkarr-&lt;id&gt;</code>. Put it on the same filesystem as your library to allow moves and hardlinks.</td></tr>
+  <tr><td>Parallel downloads</td><td><code>2</code></td><td>Additional grabs wait in line.</td></tr>
+  <tr><td>User agent</td><td><code>Inkarr/0.1</code></td><td>Advanced.</td></tr>
+</table>
+<p>If a link returns an HTML page instead of a file (a hoster's landing page, a captcha), the download fails with a hint to use JDownloader. Running downloads live in memory: after a restart, unfinished items are marked failed and the book becomes wanted again.</p>
+
+<h2 id="jdownloader">JDownloader 2</h2>
+<p>For file hosters with wait times, captchas or premium accounts, Inkarr passes the link to JDownloader through its <strong>local API</strong>.</p>
+<h3>Enable the local API</h3>
+<ol>
+  <li>In JDownloader, open <em>Settings → Advanced Settings</em>.</li>
+  <li>Search for <code>DeprecatedApi</code> and set <code>RemoteAPI: Deprecated Api Enabled</code> to <strong>true</strong>.</li>
+  <li>Restart JDownloader. The API listens on port <code>3128</code>. Don't expose it beyond your network.</li>
+</ol>
+<table>
+  <tr><th>Field</th><th>Default</th><th>Description</th></tr>
+  <tr><td>URL</td><td><code>http://localhost:3128</code></td><td></td></tr>
+  <tr><td>Download folder</td><td>(JD default)</td><td>Base folder as JDownloader sees it. Each grab gets a sub-folder.</td></tr>
+  <tr><td>Remote / Local path</td><td></td><td>When JD runs elsewhere.</td></tr>
+</table>
+<p>Links are added with <em>autostart</em>, and each package is named <code>inkarr-&lt;id&gt; &lt;release title&gt;</code>. While a package sits in the LinkGrabber (link check, captcha), the queue shows it as queued.</p>
+<div class="note"><p>The JDownloader plugin uses JD's local API, which JD labels “deprecated” but still ships. Support for the My.JDownloader cloud API would make a good community plugin.</p></div>
+
+<h2 id="choosing">Which client gets a release?</h2>
+<p>The enabled client with the lowest priority number that supports the release's protocol. To prefer JDownloader over the built-in downloader for DDL, give JD a lower priority number.</p>

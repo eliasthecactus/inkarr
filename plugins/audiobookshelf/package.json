@@ -1,0 +1,9 @@
+{
+  "name": "@inkarr/plugin-audiobookshelf",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Trigger Audiobookshelf library scans",
+  "inkarr": { "id": "audiobookshelf", "server": "./server/index.ts" },
+  "dependencies": { "@inkarr/sdk": "0.1.0" }
+}

@@ -1,0 +1,9 @@
+{
+  "name": "@inkarr/plugin-webhook",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Send JSON webhooks on grab / import",
+  "inkarr": { "id": "webhook", "server": "./server/index.ts" },
+  "dependencies": { "@inkarr/sdk": "0.1.0" }
+}

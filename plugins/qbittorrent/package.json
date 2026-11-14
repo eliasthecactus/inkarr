@@ -1,0 +1,9 @@
+{
+  "name": "@inkarr/plugin-qbittorrent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "qBittorrent download client (torrent)",
+  "inkarr": { "id": "qbittorrent", "server": "./server/index.ts" },
+  "dependencies": { "@inkarr/sdk": "0.1.0" }
+}

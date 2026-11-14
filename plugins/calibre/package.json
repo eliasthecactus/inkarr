@@ -1,0 +1,9 @@
+{
+  "name": "@inkarr/plugin-calibre",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Add imported ebooks to a Calibre library",
+  "inkarr": { "id": "calibre", "server": "./server/index.ts" },
+  "dependencies": { "@inkarr/sdk": "0.1.0" }
+}

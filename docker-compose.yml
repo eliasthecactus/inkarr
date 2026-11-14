@@ -1,0 +1,57 @@
+# Example stack. Paths on the left are on your host — adjust them.
+# All containers share /data so hardlinks work between downloads and library.
+services:
+  inkarr:
+    image: ghcr.io/eliasthecactus/inkarr:latest
+    container_name: inkarr
+    user: "1000:1000"
+    environment:
+      - TZ=Etc/UTC
+      # - INKARR_API_KEY=change-me   # recommended if exposed beyond your LAN
+    volumes:
+      - ./config/inkarr:/config
+      - /srv/data:/data
+    ports:
+      - "8585:8585"
+    restart: unless-stopped
+
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - WEBUI_PORT=8080
+    volumes:
+      - ./config/qbittorrent:/config
+      - /srv/data:/data
+    ports:
+      - "8080:8080"
+      - "6881:6881"
+      - "6881:6881/udp"
+    restart: unless-stopped
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - ./config/prowlarr:/config
+    ports:
+      - "9696:9696"
+    restart: unless-stopped
+
+  audiobookshelf:
+    image: ghcr.io/advplyr/audiobookshelf:latest
+    container_name: audiobookshelf
+    volumes:
+      - ./config/audiobookshelf:/config
+      - ./config/audiobookshelf-metadata:/metadata
+      - /srv/data/media/audiobooks:/audiobooks
+    ports:
+      - "13378:80"
+    restart: unless-stopped

@@ -1,0 +1,60 @@
+<!-- {"title":"Connections","group":"Guides","description":"Calibre, Audiobookshelf and webhooks.","lead":"Connections tell other apps that something happened. Each one can react on grab, on import, or both."} -->
+
+<h2 id="events">Events</h2>
+<p>Every connection has two switches, added by the core:</p>
+<ul>
+  <li><strong>On grab</strong> (off by default): a release was sent to a download client.</li>
+  <li><strong>On import</strong> (on by default): files were placed in your library.</li>
+</ul>
+<p>A connection that fails is logged but never blocks the import.</p>
+
+<h2 id="calibre">Calibre</h2>
+<p>Runs <code>calibredb add</code> for every imported ebook. All formats of one book are added in a single call, so Calibre merges them into one entry. Title and author come from Inkarr's metadata.</p>
+<table>
+  <tr><th>Field</th><th>Description</th></tr>
+  <tr><td>Library</td><td>A local library folder (Calibre desktop must be closed), or a content server URL such as <code>http://calibre:8080/#books</code>, where <code>books</code> is the library id.</td></tr>
+  <tr><td>Username / Password</td><td>Content server credentials. Enable <em>Require username and password</em> and <em>allow write access</em> in the server settings.</td></tr>
+  <tr><td>Tags</td><td>Added to every new book, e.g. <code>inkarr</code>.</td></tr>
+  <tr><td>Allow duplicates</td><td>Passes <code>--duplicates</code>.</td></tr>
+  <tr><td>calibredb path</td><td>Default <code>calibredb</code> on <code>$PATH</code>. On macOS: <code>/Applications/calibre.app/Contents/MacOS/calibredb</code>.</td></tr>
+</table>
+<div class="note">
+  <p><strong>Docker:</strong> the Inkarr image doesn't include Calibre, which is over 300 MB. Two options:</p>
+  <ul>
+    <li>Run Calibre (e.g. <code>linuxserver/calibre</code>) with the content server enabled, and use Inkarr from source or a custom image that has <code>calibredb</code> installed.</li>
+    <li>Use <strong>Calibre-Web-Automated</strong>. Set Inkarr's ebook library to CWA's ingest folder and no connection is needed, because CWA imports whatever lands there.</li>
+  </ul>
+</div>
+
+<h2 id="audiobookshelf">Audiobookshelf</h2>
+<p>Starts a library scan after an import so new books appear right away.</p>
+<table>
+  <tr><th>Field</th><th>Description</th></tr>
+  <tr><td>URL</td><td>e.g. <code>http://audiobookshelf:13378</code></td></tr>
+  <tr><td>API token</td><td>ABS → <em>Settings → API Keys</em> (or the token from <em>Settings → Users → your user</em> on older versions).</td></tr>
+  <tr><td>Libraries</td><td>Names or IDs, comma-separated. Empty scans every <em>book</em> library (podcast libraries are skipped).</td></tr>
+  <tr><td>Scan after</td><td>Audiobook imports (default), ebook imports, or both. ABS can also manage ebooks.</td></tr>
+</table>
+<p>Point the ABS library at the same folder as Inkarr's audiobook root, mounted at a path ABS can see.</p>
+
+<h2 id="webhook">Webhook</h2>
+<p>Sends a JSON payload to any URL, which makes it easy to connect anything else: Kavita, Home Assistant, n8n, ntfy, Discord bridges and so on.</p>
+<pre><code>{
+  "eventType": "import",          // "grab" | "import" | "test"
+  "instance": "inkarr",
+  "date": "2026-11-14T20:15:03.120Z",
+  "book": {
+    "id": 12,
+    "title": "Frankenstein",
+    "author": "Mary Shelley",
+    "year": 1818,
+    "mediaType": "ebook",
+    "isbn": ["9780141439471"]
+  },
+  "folder": "/data/media/books/Mary Shelley/Frankenstein (1818)",
+  "files": ["/data/media/books/Mary Shelley/Frankenstein (1818)/Mary Shelley - Frankenstein.epub"]
+}</code></pre>
+<p>Grab events contain <code>book</code> and <code>release</code> (title, protocol, indexer, size…) instead of <code>folder</code>/<code>files</code>.</p>
+
+<h2 id="kavita">Kavita, Komga and others</h2>
+<p>There are no dedicated plugins yet. Most of these apps scan their folders on a schedule, and a webhook can trigger an immediate scan through their APIs. Dedicated connection plugins are small, and a good first contribution: see <a href="plugin-development.html#connection">Connection plugins</a>.</p>

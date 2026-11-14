@@ -1,0 +1,9 @@
+{
+  "name": "@inkarr/plugin-librivox",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "LibriVox public-domain audiobooks (DDL)",
+  "inkarr": { "id": "librivox", "server": "./server/index.ts" },
+  "dependencies": { "@inkarr/sdk": "0.1.0" }
+}

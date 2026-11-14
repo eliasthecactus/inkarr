@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Inkarr — ebook & audiobook manager</title>
+  <meta name="description" content="Inkarr watches for the books you want, sends releases to your torrent or DDL client, and files the result into Calibre, Audiobookshelf and friends. Everything is a plugin.">
+  <link rel="icon" href="logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html"><img src="logo.svg" alt="" width="28" height="28"> Inkarr</a>
+    <nav class="topnav">
+      <a href="#features">Features</a>
+      <a href="#plugins">Plugins</a>
+      <a href="docs/getting-started.html">Docs</a>
+      <a href="https://github.com/eliasthecactus/inkarr">GitHub</a>
+    </nav>
+    <button class="menu-toggle" aria-label="Toggle navigation" onclick="document.body.classList.toggle('nav-open')">☰</button>
+  </header>
+
+  <section class="hero">
+    <div class="hero-inner">
+      <div>
+        <span class="eyebrow">Self-hosted · Open source · In active development</span>
+        <h1>Your reading list, <span>on autopilot.</span></h1>
+        <p>Inkarr is a collection manager for ebooks and audiobooks in the spirit of the *arr apps. Tell it which books you want. It searches your sources, hands releases to your download client, and files the result into your library.</p>
+        <div class="cta">
+          <a class="btn btn-primary" href="docs/getting-started.html">Get started →</a>
+          <a class="btn btn-ghost" href="https://github.com/eliasthecactus/inkarr">View on GitHub</a>
+        </div>
+        <pre><code>docker run -d --name inkarr -p 8585:8585 \
+  -v ./config:/config -v /srv/data:/data \
+  ghcr.io/eliasthecactus/inkarr:latest</code></pre>
+      </div>
+      <div class="mock" aria-hidden="true">
+        <div class="mock-header"><img src="logo.svg" alt="" width="20" height="20"> Inkarr</div>
+        <div class="mock-body">
+          <div class="mock-side">
+            <div class="on">Library</div><div>Add new</div><div>Activity</div><div>Wanted</div><div>Settings</div><div>System</div>
+          </div>
+          <div class="mock-main">
+            <div class="mock-toolbar"></div>
+            <div class="mock-grid">
+              <div class="mock-book"><i style="background:linear-gradient(160deg,#6d3b1f,#2a1d17)"></i><b style="background:#3fb67b"></b></div>
+              <div class="mock-book"><i style="background:linear-gradient(160deg,#1f3d5c,#1a1d2a)"></i><b style="background:#3fb67b"></b></div>
+              <div class="mock-book"><i style="background:linear-gradient(160deg,#4d2a5c,#1f1a2a)"></i><b style="background:#4c9fe2"></b></div>
+              <div class="mock-book"><i style="background:linear-gradient(160deg,#2f5c3a,#1a2a1f)"></i><b style="background:#3fb67b"></b></div>
+              <div class="mock-book"><i style="background:linear-gradient(160deg,#5c4a1f,#2a241a)"></i><b style="background:#e2574c"></b></div>
+              <div class="mock-book"><i style="background:linear-gradient(160deg,#5c1f2e,#2a1a1d)"></i><b style="background:#3fb67b"></b></div>
+              <div class="mock-book"><i style="background:linear-gradient(160deg,#1f5c58,#1a2a29)"></i><b style="background:#9b98a8"></b></div>
+              <div class="mock-book"><i style="background:linear-gradient(160deg,#3a3a5c,#1c1c2a)"></i><b style="background:#3fb67b"></b></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="how">
+    <h2>How it works</h2>
+    <p class="sub">The same loop you know from the *arr apps, rebuilt around books and their quirks: editions, formats, series and narrators.</p>
+    <div class="flow">
+      <div><b>Want</b><span>Add a book from Open Library, as an ebook, an audiobook or both.</span></div>
+      <div><b>Search</b><span>Every enabled indexer is queried. Releases are scored and filtered.</span></div>
+      <div><b>Grab</b><span>The best release goes to a client that speaks its protocol (torrent or DDL).</span></div>
+      <div><b>Import</b><span>Finished files are hardlinked, renamed and filed as Author/Title.</span></div>
+      <div><b>Notify</b><span>Calibre, Audiobookshelf or a webhook learn about the new book.</span></div>
+    </div>
+  </section>
+
+  <section class="section callout-band" id="features" style="max-width:none">
+    <div style="max-width:1120px;margin:0 auto">
+      <h2>Built for books</h2>
+      <p class="sub">Movies have tidy scene names. Books don't, so most of Inkarr's work goes into matching releases to the right book.</p>
+      <div class="features">
+        <div class="feature"><div class="icon">🧩</div><h3>Everything is a plugin</h3><p>Indexers, download clients, connections, metadata sources, scheduled tasks, API routes, even UI pages. The core only orchestrates.</p></div>
+        <div class="feature"><div class="icon">🧲</div><h3>Torrent and DDL</h3><p>Releases carry a protocol. Torrents go to qBittorrent. Direct links use the built-in downloader or JDownloader for file hosters.</p></div>
+        <div class="feature"><div class="icon">🎧</div><h3>Ebooks and audiobooks</h3><p>Want either or both for the same title. Separate formats, categories, root folders and naming for each.</p></div>
+        <div class="feature"><div class="icon">🎯</div><h3>Transparent matching</h3><p>Interactive search shows every release with its score and the exact reason it would be rejected. No black box.</p></div>
+        <div class="feature"><div class="icon">🔗</div><h3>Hardlinks by default</h3><p>Torrents keep seeding and your library takes no extra space. Remote path mapping covers Docker setups.</p></div>
+        <div class="feature"><div class="icon">📦</div><h3>One container</h3><p>A single multi-arch image on GHCR (amd64 + arm64), SQLite inside, no external database.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="plugins">
+    <h2>Plugins that ship today</h2>
+    <p class="sub">Each one is a self-contained folder under <code>plugins/</code>, written against the same SDK you can use for your own.</p>
+    <table class="plugin-table">
+      <thead><tr><th>Plugin</th><th>Type</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td><b>qBittorrent</b></td><td><span class="tag">download client</span><span class="tag">torrent</span></td><td>Adds torrents (magnet or .torrent), tracks them by tag and maps remote paths.</td></tr>
+        <tr><td><b>Direct Download</b></td><td><span class="tag">download client</span><span class="tag">ddl</span></td><td>Built-in HTTP downloader for direct file links. Nothing else to install.</td></tr>
+        <tr><td><b>JDownloader 2</b></td><td><span class="tag">download client</span><span class="tag">ddl</span></td><td>Hands hoster links to JDownloader through its local API.</td></tr>
+        <tr><td><b>Torznab</b></td><td><span class="tag">indexer</span><span class="tag">torrent</span></td><td>Any Torznab endpoint, typically your indexers in Prowlarr or Jackett. Supports search and RSS.</td></tr>
+        <tr><td><b>Project Gutenberg</b></td><td><span class="tag">indexer</span><span class="tag">ddl</span></td><td>70,000+ public-domain ebooks from gutenberg.org.</td></tr>
+        <tr><td><b>LibriVox</b></td><td><span class="tag">indexer</span><span class="tag">ddl</span></td><td>Public-domain audiobooks read by volunteers. Zips are extracted on import.</td></tr>
+        <tr><td><b>Open Library</b></td><td><span class="tag">metadata</span></td><td>Titles, authors, covers and ISBN lookup.</td></tr>
+        <tr><td><b>Calibre</b></td><td><span class="tag">connection</span></td><td>Adds imported ebooks to a local library or a content server with <code>calibredb</code>.</td></tr>
+        <tr><td><b>Audiobookshelf</b></td><td><span class="tag">connection</span></td><td>Triggers library scans after imports.</td></tr>
+        <tr><td><b>Webhook</b></td><td><span class="tag">connection</span></td><td>JSON on grab or import, to connect Kavita, Home Assistant, n8n, ntfy and so on.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section callout-band" style="max-width:none">
+    <div class="split" style="max-width:1120px;margin:0 auto">
+      <div>
+        <h2>Write a plugin in one file</h2>
+        <p class="sub" style="margin-bottom:16px">Describe your settings and implement a small interface. Inkarr renders the settings form, stores instances, adds a <em>Test</em> button and calls you when needed.</p>
+        <a class="btn btn-primary" href="docs/plugin-development.html">Plugin guide →</a>
+      </div>
+<pre><code>import { definePlugin } from '@inkarr/sdk';
+
+export default definePlugin({
+  id: 'my-indexer',
+  name: 'My Indexer',
+  version: '1.0.0',
+  setup(ctx) {
+    ctx.registerIndexer({
+      type: 'my-indexer',
+      name: 'My Indexer',
+      fields: [{ key: 'url', label: 'URL', type: 'url' }],
+      create: (settings) => ({
+        protocol: 'ddl',
+        mediaTypes: ['ebook'],
+        test: async () => ({ ok: true }),
+        search: async (q) => [/* releases */],
+      }),
+    });
+  },
+});</code></pre>
+    </div>
+  </section>
+
+  <section class="section" style="text-align:center">
+    <h2>Ready when you are</h2>
+    <p class="sub" style="margin:10px auto 28px">Run it next to qBittorrent and Prowlarr, point it at your library, add a book.</p>
+    <div class="cta" style="justify-content:center">
+      <a class="btn btn-primary" href="docs/getting-started.html">Install guide</a>
+      <a class="btn" style="border-color:var(--border);color:var(--text)" href="docs/faq.html">FAQ</a>
+    </div>
+  </section>
+
+  <footer class="footer">Inkarr is in active development and was built with heavy AI assistance. It is an independent open-source project and is not affiliated with any other *arr application. Use it only with content you have the right to download.</footer>
+</body>
+</html>

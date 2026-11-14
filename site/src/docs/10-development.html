@@ -1,0 +1,45 @@
+<!-- {"title":"Contributing","group":"Help","description":"Repository layout, local development and releases.","lead":"How the repository is organised, and how to build, test and release Inkarr."} -->
+
+<h2 id="layout">Repository layout</h2>
+<pre><code>inkarr/
+├── packages/
+│   ├── sdk/            @inkarr/sdk      — server plugin contract (types + helpers)
+│   └── web-sdk/        @inkarr/web-sdk  — UI plugin contract, API hooks, components
+├── apps/
+│   ├── server/         Hono API, SQLite (Drizzle), plugin loader, scheduler, importer
+│   └── web/            React + Vite shell: header, sidebar, router; pages come from plugins
+├── plugins/            one folder per plugin (server/, web/ or both)
+├── site/               this documentation + landing page (GitHub Pages)
+├── Dockerfile          multi-stage image published to ghcr.io
+└── .github/workflows   ci.yml, release.yml (GHCR), pages.yml (docs)</code></pre>
+
+<h2 id="dev">Local development</h2>
+<pre><code>npm install
+npm run dev            # server (tsx watch, :8585) + Vite UI (:5173, proxies /api)
+npm run typecheck
+node --import tsx --test apps/server/test/*.test.ts
+node site/build.mjs    # docs → site/dist</code></pre>
+<p>Data goes to <code>./data</code> unless <code>INKARR_DATA</code> is set.</p>
+
+<h2 id="core">Core modules</h2>
+<table>
+  <tr><th>File</th><th>Responsibility</th></tr>
+  <tr><td><code>plugins.ts</code></td><td>Discovers plugin folders, imports server entries, builds the <code>PluginContext</code>.</td></tr>
+  <tr><td><code>providers.ts</code></td><td>Stores provider instances, instantiates and caches them, adds core fields.</td></tr>
+  <tr><td><code>parser.ts</code></td><td>Release parsing, scoring and rejection rules (unit-tested).</td></tr>
+  <tr><td><code>library.ts</code></td><td>Search, grab and auto-search orchestration.</td></tr>
+  <tr><td><code>core-tasks.ts</code></td><td>Queue refresh, RSS sync, search-wanted, and the scheduler.</td></tr>
+  <tr><td><code>importer.ts</code></td><td>File selection, archive extraction, naming, hardlink/copy/move.</td></tr>
+  <tr><td><code>api.ts</code></td><td>REST endpoints, including plugin route mounting.</td></tr>
+</table>
+
+<h2 id="release">Releasing</h2>
+<ol>
+  <li>Bump the version in <code>package.json</code>.</li>
+  <li>Tag it: <code>git tag v0.2.0 &amp;&amp; git push --tags</code>.</li>
+  <li><code>release.yml</code> builds <code>linux/amd64</code> + <code>linux/arm64</code> and pushes <code>ghcr.io/eliasthecactus/inkarr:0.2.0</code>, <code>:0.2</code> and <code>:latest</code>. Every push to <code>main</code> updates <code>:develop</code>.</li>
+</ol>
+<p>The first time, make the package public under <em>GitHub → Packages → inkarr → Package settings</em>. For the docs, enable <em>Settings → Pages → Source: GitHub Actions</em>.</p>
+
+<h2 id="ai">AI disclosure</h2>
+<p>Inkarr was built with heavy use of an AI coding assistant and is still in active development. Expect bugs and breaking changes.</p>

@@ -1,0 +1,83 @@
+<!-- {"title":"Getting started","group":"Introduction","description":"Install Inkarr with Docker and grab your first book.","lead":"Install Inkarr with Docker, connect a download client and an indexer, and add your first book. About ten minutes."} -->
+
+<h2 id="requirements">Requirements</h2>
+<ul>
+  <li>Docker (or Node.js 22+ to run from source).</li>
+  <li>For torrents: <a href="https://www.qbittorrent.org">qBittorrent</a> 4.1 or newer with the Web UI enabled, plus an indexer, usually through <a href="https://prowlarr.com">Prowlarr</a> or Jackett.</li>
+  <li>For direct downloads: nothing extra. Install JDownloader 2 only if you need file hosters.</li>
+  <li>Optional: Calibre, Audiobookshelf, or anything else that should hear about new books.</li>
+</ul>
+
+<h2 id="docker">Install with Docker</h2>
+<p>Images are published to the GitHub Container Registry for <code>linux/amd64</code> and <code>linux/arm64</code>:</p>
+<table>
+  <tr><th>Tag</th><th>Meaning</th></tr>
+  <tr><td><code>latest</code></td><td>Most recent release (<code>v*</code> git tag).</td></tr>
+  <tr><td><code>0.1</code>, <code>0.1.0</code></td><td>Pinned release versions.</td></tr>
+  <tr><td><code>develop</code></td><td>Built from every commit to <code>main</code>. May break.</td></tr>
+</table>
+<pre><code>docker run -d --name inkarr \
+  -p 8585:8585 \
+  -e TZ=Etc/UTC \
+  -v /srv/inkarr/config:/config \
+  -v /srv/data:/data \
+  --user 1000:1000 \
+  --restart unless-stopped \
+  ghcr.io/eliasthecactus/inkarr:latest</code></pre>
+<p>Then open <code>http://&lt;host&gt;:8585</code>.</p>
+
+<h3 id="compose">docker compose</h3>
+<p>The repository includes an example <a href="https://github.com/eliasthecactus/inkarr/blob/main/docker-compose.yml"><code>docker-compose.yml</code></a> with Inkarr, qBittorrent, Prowlarr and Audiobookshelf. The key idea is that <strong>every container mounts the same <code>/data</code> folder</strong>:</p>
+<pre><code>/srv/data
+├── torrents/          ← qBittorrent downloads here
+│   ├── inkarr-books/
+│   └── inkarr-audiobooks/
+├── ddl/               ← direct downloads
+└── media/
+    ├── books/         ← Inkarr ebook root
+    └── audiobooks/    ← Inkarr audiobook root (Audiobookshelf reads this)</code></pre>
+<div class="tip"><p>When the download folder and the library are on the same filesystem and mount, Inkarr <strong>hardlinks</strong> instead of copying. Imports are instant, take no extra space, and torrents keep seeding.</p></div>
+
+<h3 id="volumes">Volumes and environment</h3>
+<table>
+  <tr><th>Path / variable</th><th>Purpose</th></tr>
+  <tr><td><code>/config</code></td><td>Database (<code>inkarr.db</code>) and plugin state. Back this up.</td></tr>
+  <tr><td><code>/data</code></td><td>Your shared downloads + media tree (any path works; configure it in the UI).</td></tr>
+  <tr><td><code>INKARR_PORT</code></td><td>HTTP port, default <code>8585</code>.</td></tr>
+  <tr><td><code>INKARR_API_KEY</code></td><td>When set, every API call needs <code>X-Api-Key</code>. Recommended for anything reachable from outside your LAN.</td></tr>
+  <tr><td><code>INKARR_PLUGIN_DIRS</code></td><td>Extra plugin folders, colon-separated (see <a href="plugin-development.html#installing">installing plugins</a>).</td></tr>
+  <tr><td><code>INKARR_DEBUG</code></td><td>Set to <code>1</code> to print debug logs.</td></tr>
+</table>
+
+<h2 id="first-run">First run walkthrough</h2>
+<h3>1. Media management</h3>
+<p>Go to <strong>Settings → Media Management</strong> and set the <em>Ebook library</em> and <em>Audiobook library</em> folders, e.g. <code>/data/media/books</code> and <code>/data/media/audiobooks</code>. Keep the import mode on <em>Hardlink</em> unless you have a reason not to.</p>
+
+<h3>2. Download client</h3>
+<p>Go to <strong>Settings → Download Clients</strong> and click <strong>+</strong>:</p>
+<ul>
+  <li><strong>qBittorrent</strong> for torrents: URL, username and password. Click <em>Test</em>.</li>
+  <li><strong>Direct Download</strong> for DDL sources: set a download folder such as <code>/data/ddl</code>.</li>
+</ul>
+<p>You can add both. Each release goes to the highest-priority client that supports its protocol.</p>
+
+<h3>3. Indexer</h3>
+<p>Go to <strong>Settings → Indexers</strong> and click <strong>+</strong>. For torrent indexers, choose <strong>Torznab</strong> and paste an indexer's Torznab URL and API key from Prowlarr (see <a href="indexers.html#torznab">Torznab</a>). To try things without any setup, add <strong>Project Gutenberg</strong> or <strong>LibriVox</strong>. They are free and legal, and they use the Direct Download client.</p>
+
+<h3>4. Add a book</h3>
+<p>Click <strong>Add new</strong>, search for a title, author or ISBN, and click <strong>Add</strong>. Choose <em>Ebook</em>, <em>Audiobook</em> or both. With <em>Search now</em> on, Inkarr searches right away and grabs the best acceptable release. Watch it under <strong>Activity → Queue</strong>.</p>
+
+<h3>5. Connections (optional)</h3>
+<p>Under <strong>Settings → Connect</strong>, add <strong>Calibre</strong> to put ebooks into your Calibre library, or <strong>Audiobookshelf</strong> to rescan after audiobook imports.</p>
+
+<h2 id="from-source">Run from source</h2>
+<pre><code>git clone https://github.com/eliasthecactus/inkarr
+cd inkarr
+npm install
+npm run dev          # API on :8585 and UI with hot reload on :5173</code></pre>
+<p>For a production-like build: <code>npm run build &amp;&amp; npm start</code>. The server then serves the UI from <code>apps/web/dist</code>.</p>
+
+<h2 id="updating">Updating</h2>
+<pre><code>docker pull ghcr.io/eliasthecactus/inkarr:latest
+docker compose up -d inkarr</code></pre>
+<p>Database migrations run automatically on start.</p>
