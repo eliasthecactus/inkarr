@@ -11,7 +11,7 @@
 Tell Inkarr which books you want, as an ebook, an audiobook or both. It searches your indexers, sends the best release to your download client, and imports the result into a clean `Author/Title (Year)` library. Then it tells Calibre, Audiobookshelf or anything else with a webhook.
 
 - **Everything is a plugin:** indexers, download clients, connections, metadata, tasks, API routes, and even the UI pages.
-- **Torrent and DDL:** qBittorrent for torrents, a built-in HTTP downloader or JDownloader for direct links.
+- **Torrent and DDL:** qBittorrent or Transmission for torrents, a built-in HTTP downloader or JDownloader for direct links.
 - **Transparent matching:** interactive search shows every release with its score and why it would be rejected.
 - **Hardlinks by default,** remote path mapping, zip extraction, and one container with SQLite inside.
 
@@ -30,6 +30,7 @@ Open http://localhost:8585 and follow the [first-run walkthrough](https://eliast
 | Plugin | Kind | Protocol |
 |---|---|---|
 | qBittorrent | download client | torrent |
+| Transmission | download client | torrent |
 | Direct Download (built-in) | download client | ddl |
 | JDownloader 2 | download client | ddl |
 | Torznab (Prowlarr / Jackett) | indexer | torrent |

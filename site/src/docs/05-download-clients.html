@@ -20,6 +20,23 @@
   <li>Removing an item from the queue can also remove it from qBittorrent, with or without its data.</li>
 </ul>
 
+<h2 id="transmission">Transmission</h2>
+<p>Works with Transmission 2.x, 3.x and 4.x: the desktop app with <em>Preferences → Remote → Allow remote access</em> enabled, or <code>transmission-daemon</code> (e.g. the <code>linuxserver/transmission</code> image).</p>
+<table>
+  <tr><th>Field</th><th>Default</th><th>Description</th></tr>
+  <tr><td>URL</td><td><code>http://localhost:9091</code></td><td>Host and port. The web UI URL or the full <code>…/transmission/rpc</code> URL also work.</td></tr>
+  <tr><td>Username / Password</td><td></td><td>Only if RPC authentication is enabled.</td></tr>
+  <tr><td>Download folder (ebooks / audiobooks)</td><td>(Transmission default)</td><td>As Transmission sees it, e.g. <code>/downloads/books</code>.</td></tr>
+  <tr><td>Add paused</td><td>off</td><td>Advanced.</td></tr>
+  <tr><td>RPC path</td><td><code>/transmission/rpc</code></td><td>Advanced. Only if you changed <code>rpc-url</code>.</td></tr>
+  <tr><td>Remote / Local path</td><td></td><td>See <a href="configuration.html#remote-paths">remote path mapping</a>.</td></tr>
+</table>
+<ul>
+  <li>Torrents are tracked by <strong>info hash</strong>, which works on every version. On Transmission 3.0+ they also get the labels <code>inkarr</code> and <code>inkarr-&lt;id&gt;</code> so you can spot them in the UI.</li>
+  <li>Like qBittorrent, <code>.torrent</code> URLs are downloaded by Inkarr and uploaded to Transmission, and redirects to magnet links are followed.</li>
+  <li>A torrent counts as complete at 100%. Tracker warnings don't fail a download; local errors such as a full disk or missing permissions do.</li>
+</ul>
+
 <h2 id="direct">Direct Download (built-in)</h2>
 <p>A small HTTP downloader inside Inkarr for releases with protocol <code>ddl</code> that point at a file, such as Gutenberg, LibriVox or your own server.</p>
 <table>

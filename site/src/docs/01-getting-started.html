@@ -3,7 +3,7 @@
 <h2 id="requirements">Requirements</h2>
 <ul>
   <li>Docker (or Node.js 22+ to run from source).</li>
-  <li>For torrents: <a href="https://www.qbittorrent.org">qBittorrent</a> 4.1 or newer with the Web UI enabled, plus an indexer, usually through <a href="https://prowlarr.com">Prowlarr</a> or Jackett.</li>
+  <li>For torrents: <a href="https://www.qbittorrent.org">qBittorrent</a> 4.1+ with the Web UI enabled, or <a href="https://transmissionbt.com">Transmission</a> with remote access enabled, plus an indexer, usually through <a href="https://prowlarr.com">Prowlarr</a> or Jackett.</li>
   <li>For direct downloads: nothing extra. Install JDownloader 2 only if you need file hosters.</li>
   <li>Optional: Calibre, Audiobookshelf, or anything else that should hear about new books.</li>
 </ul>
@@ -56,7 +56,7 @@
 <h3>2. Download client</h3>
 <p>Go to <strong>Settings → Download Clients</strong> and click <strong>+</strong>:</p>
 <ul>
-  <li><strong>qBittorrent</strong> for torrents: URL, username and password. Click <em>Test</em>.</li>
+  <li><strong>qBittorrent</strong> or <strong>Transmission</strong> for torrents: URL, username and password. Click <em>Test</em>.</li>
   <li><strong>Direct Download</strong> for DDL sources: set a download folder such as <code>/data/ddl</code>.</li>
 </ul>
 <p>You can add both. Each release goes to the highest-priority client that supports its protocol.</p>

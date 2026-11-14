@@ -76,7 +76,7 @@
       <p class="sub">Movies have tidy scene names. Books don't, so most of Inkarr's work goes into matching releases to the right book.</p>
       <div class="features">
         <div class="feature"><div class="icon">🧩</div><h3>Everything is a plugin</h3><p>Indexers, download clients, connections, metadata sources, scheduled tasks, API routes, even UI pages. The core only orchestrates.</p></div>
-        <div class="feature"><div class="icon">🧲</div><h3>Torrent and DDL</h3><p>Releases carry a protocol. Torrents go to qBittorrent. Direct links use the built-in downloader or JDownloader for file hosters.</p></div>
+        <div class="feature"><div class="icon">🧲</div><h3>Torrent and DDL</h3><p>Releases carry a protocol. Torrents go to qBittorrent or Transmission. Direct links use the built-in downloader or JDownloader for file hosters.</p></div>
         <div class="feature"><div class="icon">🎧</div><h3>Ebooks and audiobooks</h3><p>Want either or both for the same title. Separate formats, categories, root folders and naming for each.</p></div>
         <div class="feature"><div class="icon">🎯</div><h3>Transparent matching</h3><p>Interactive search shows every release with its score and the exact reason it would be rejected. No black box.</p></div>
         <div class="feature"><div class="icon">🔗</div><h3>Hardlinks by default</h3><p>Torrents keep seeding and your library takes no extra space. Remote path mapping covers Docker setups.</p></div>
@@ -92,6 +92,7 @@
       <thead><tr><th>Plugin</th><th>Type</th><th>What it does</th></tr></thead>
       <tbody>
         <tr><td><b>qBittorrent</b></td><td><span class="tag">download client</span><span class="tag">torrent</span></td><td>Adds torrents (magnet or .torrent), tracks them by tag and maps remote paths.</td></tr>
+        <tr><td><b>Transmission</b></td><td><span class="tag">download client</span><span class="tag">torrent</span></td><td>Transmission 2.x–4.x via RPC, tracked by info hash, with labels on 3.0+.</td></tr>
         <tr><td><b>Direct Download</b></td><td><span class="tag">download client</span><span class="tag">ddl</span></td><td>Built-in HTTP downloader for direct file links. Nothing else to install.</td></tr>
         <tr><td><b>JDownloader 2</b></td><td><span class="tag">download client</span><span class="tag">ddl</span></td><td>Hands hoster links to JDownloader through its local API.</td></tr>
         <tr><td><b>Torznab</b></td><td><span class="tag">indexer</span><span class="tag">torrent</span></td><td>Any Torznab endpoint, typically your indexers in Prowlarr or Jackett. Supports search and RSS.</td></tr>
